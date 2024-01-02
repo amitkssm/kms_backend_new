@@ -1,0 +1,22 @@
+[
+   { 
+    "question" : "How are you ?",
+    "action_id" : null
+    },
+   { 
+    "question" : "What is your age ?",
+    "action_id" : null
+    },
+   { 
+    "question" : "Where are you from ?",
+    "action_id" : ""
+    },
+   { 
+    "question" : "What is your occupation ?",
+    "action_id" : ""
+    }
+]
+
+
+ 
+
