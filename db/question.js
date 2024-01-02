@@ -14,6 +14,7 @@ const questionSchema = new mongoose.Schema({
         ]
     },
     tables: [],
+    scene:String,
     newData:{default:1,type:Number},
 
     created_date: {

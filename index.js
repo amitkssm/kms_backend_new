@@ -51,15 +51,18 @@ let savedQuestion
         let options = data[i].options ? data[i].options : []
         let tables = data[i].tables ? data[i].tables : []
         let pre = data[i].pre ? data[i].pre : ""
+        let scene=req.body.scene
 
         let saveData = {
             
             question: question,
             pre:pre,
             options: options,
-            tables: tables
+            tables: tables,
+            scene:scene
 
         }
+        console.log(saveData)
         Question.create(saveData).then((result)=>{
             if(i==0){
                savedQuestion=result
@@ -67,12 +70,18 @@ let savedQuestion
 
         if (result) {
             count++
-           if(count==data.length){ res.status(200).json({
+           if(count==data.length){ 
+            console.log("s")
+            scenario_details.updateOne({_id:scene},{$set:{actionId:result._id}}).then((data)=>{
+            res.status(200).json({
                 error: false,
                 code: 200,
                 message: "Save Successfully",
                 data: savedQuestion
-            })}
+            })
+        })
+        }
+        
         } else {
             res.status(404).json({
                 error: true,
@@ -100,7 +109,6 @@ let savedQuestion
 app.post('/getQuestionById', async (req, res) => {
     try {
         const actionId = req.body.actionId ? req.body.actionId : null
-
         const question = await Question.find({ pre:actionId});
         console.log('find');
         if (question) {
@@ -131,6 +139,7 @@ app.post('/getQuestionByScenerio', async (req, res) => {
 });
 
 
+
 app.get('/getQuestion',async(req,res)=>{
 
     //const questions = req.params.question ? req.params.question : "" 
@@ -159,29 +168,55 @@ app.get('/getscenario',async(req,res)=>{
         } 
     }
     catch (error) {
-        res.status(400).send(error);
+        res.status(400).send(err);
     }
 
 });
 
 
-app.get('/getscenarioDetaqils',async(req,res)=>{
 
-    const scenarioId = req.query.scenario_id ? req.query.scenario_id : "" 
+app.post('/getItemsScenerio',async(req,res)=>{
 
+    const scene = req.body.scene ? req.body.scene : "" 
     try {
-        const result = await scenario_details.find({_id:ObjectId(scenarioId)});
+        const result = await Question.find({scene:scene});
         if (result) {
             console.log(result.length);
             res.status(201).send(result);
         } 
     }
     catch (error) {
-        res.status(400).send(error);
+        res.status(400).send(err);
     }
 
 });
+app.post('/updateQuestion',async(req,res)=>{
+    
+    try {
+        let data = req.body.data ? req.body.data :[]
+        let result
 
+        for(i=0;i<data.length;i++){
+            let id= data[i]._id
+            delete data[i]._id
+            result = await Question.updateOne({_id:ObjectId(id)},{$set:data[i]},{new: true});
+        }
+        
+        if (result) {
+            console.log(result);
+            res.status(200).json({
+                error: false,
+                code: 200,
+                message: "Update Successfully",
+                data: []
+            });
+        } 
+    }
+    catch (error) {
+        res.status(400).send(error);
+    }
+
+})
 
 
 
