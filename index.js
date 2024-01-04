@@ -284,9 +284,10 @@ app.post('/updateQuestion',async(req,res)=>{
 
 })
 
-app.get('/getscenarioDetails',async(req,res)=>{
+app.post('/getscenarioDetails',async(req,res)=>{
+    console.log("qqqqqqqqqqqqqqqqqqq")
 
-    const scenarioId = req.query.scenario_id ? req.query.scenario_id : "" 
+    const scenarioId = req.body.scenario_id ? req.body.scenario_id : "" 
 
     try {
         const result = await scenario_details.find({_id:ObjectId(scenarioId)});
