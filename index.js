@@ -40,70 +40,6 @@ app.post('/saveScenario', async (req, res) => {
     
 })
 
-// app.post("/saveQuestion",async (req, res) => {
-//     console.log(req.body.data[0].options)
-//     let count=0
-//     let data=req.body.data
-//     let savedQuestion
-//     try {
-//         for(let i=0;i<data.length;i++)
-//         { let question = data[i].question ? data[i].question : ""
-//         let options = data[i].options ? data[i].options : []
-//         let tables = data[i].tables ? data[i].tables : []
-//         let pre = data[i].pre ? data[i].pre : ""
-//         let scene=req.body.scene
-
-//         let saveData = {
-            
-//             question: question,
-//             pre:pre,
-//             options: options,
-//             tables: tables,
-//             scene:scene
-
-//         }
-//         console.log(saveData)
-//         Question.create(saveData).then((result)=>{
-//             if(i==0){
-//                savedQuestion=result
-//             }
-
-//         if (result) {
-//             count++
-//            if(count==data.length){ 
-//             console.log("s")
-//             scenario_details.updateOne({_id:scene},{$set:{actionId:result._id}}).then((data)=>{
-//             res.status(200).json({
-//                 error: false,
-//                 code: 200,
-//                 message: "Save Successfully",
-//                 data: savedQuestion
-//             })
-//         })
-//         }
-        
-//         } else {
-//             res.status(404).json({
-//                 error: true,
-//                 code: 404,
-//                 message: "",
-//             })
-//         }
-//        })
-//     }
-    
-//     } catch (error) {
-//         console.log(error)
-//         res.status(400).json({
-//             error: true,
-//             code: 400,
-//             message: "sonthing went worng",
-//             data: error
-//         })
-//     }
-
-// });
-
 app.post("/saveQuestion",async (req, res) => {
     console.log(req.body.data[0].options)
     let count=0
@@ -302,10 +238,17 @@ app.post('/getscenarioDetails',async(req,res)=>{
 
 });
 
+app.post("/sceneraioDetails",(req,res)=>{
+    scenario_details.findOne({_id:req.body.id}).then((data)=>{
+        res.send(data)
+    })
+})
+
 
 // app.post('/deleteSceine', async (req, res) => {
 //     console.log("qqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
-//     const deleteData = await Question.deleteMany({scene:"659522dfd78b09c84b2afccd"})
+//     let id = req.body.id
+//     const deleteData = await Question.deleteMany({scene:id})
 //     if (deleteData) {
 //         res.status(201).send(deleteData);
 //     } 
