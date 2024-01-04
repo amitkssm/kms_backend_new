@@ -284,6 +284,23 @@ app.post('/updateQuestion',async(req,res)=>{
 
 })
 
+app.get('/getscenarioDetails',async(req,res)=>{
+
+    const scenarioId = req.query.scenario_id ? req.query.scenario_id : "" 
+
+    try {
+        const result = await scenario_details.find({_id:ObjectId(scenarioId)});
+        if (result) {
+            console.log(result.length);
+            res.status(201).send(result);
+        } 
+    }
+    catch (error) {
+        res.status(400).send(error);
+    }
+
+});
+
 
 // app.post('/deleteSceine', async (req, res) => {
 //     console.log("qqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
