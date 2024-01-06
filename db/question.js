@@ -1,9 +1,26 @@
 const mongoose = require("mongoose");
 const ObjectId = require('mongoose').Types.ObjectId;
+
+const registrationSchema = new mongoose.Schema({
+    profile_image: String,
+    name: String,
+    mobile_number: String,
+    email: String,
+    password: String,
+    address: String,
+    user_role: String,
+    admin_id: String,
+    is_deleted: { type: Number, default: 0 },
+    created: { type: Date, default: Date.now },
+    modified: { type: Date, default: Date.now }
+
+});
+Registration = mongoose.model("registrations", registrationSchema);
+
 const questionSchema = new mongoose.Schema({
     // scenario: String,
     question: String,
-    pre:String,
+    pre: String,
     options: {
         type: Array,
         default: [
@@ -14,9 +31,9 @@ const questionSchema = new mongoose.Schema({
         ]
     },
     tables: [],
-    scene:String,
-    newData:{default:1,type:Number},
-    start:{type:Number,default:0},
+    scene: String,
+    newData: { default: 1, type: Number },
+    start: { type: Number, default: 0 },
 
     created_date: {
         type: Date,
@@ -29,11 +46,12 @@ Question = mongoose.model("Questions", questionSchema);
 const scenarioSchema = new mongoose.Schema({
 
     scenario: String,
-    circle:String,
-    liveDate:String,
-    expDate:String,
-    brief:String,
+    circle: String,
+    liveDate: String,
+    expDate: String,
+    brief: String,
     actionId: String,
+    count: { type: Number, default: 0 },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
 
@@ -42,6 +60,8 @@ scenario_details = mongoose.model("scenario_details", scenarioSchema);
 
 
 module.exports = {
+    
+    Registration,
     Question,
     scenario_details,
 
