@@ -1,5 +1,5 @@
 
- 
+
 const express = require("express");
 const mongoose = require("mongoose");
 const ObjectId = require('mongoose').Types.ObjectId;
@@ -28,8 +28,9 @@ app.listen((2222), () => {
 
 //==================================== KMS API START =====================================//
 
+/************************ Save category of KMS ******************* */
 app.post('/saveScenario', async (req, res) => {
- 
+
     const question = await new scenario_details(req.body);
     question.save().then((question) => {
         res.status(201).send(question);
@@ -37,63 +38,63 @@ app.post('/saveScenario', async (req, res) => {
     }).catch((error) => {
         res.status(400).send(error);
     })
-    
+
 })
 
-app.post("/saveQuestion",async (req, res) => {
+/************************ Save Question and Options of KMS ******************* */
+app.post("/saveQuestion", async (req, res) => {
+
     console.log(req.body.data[0].options)
-    let count=0
-    let data=req.body.data
-let savedQuestion
+    let count = 0
+    let data = req.body.data
+    let savedQuestion
     try {
-        for(let i=0;i<data.length;i++)
-        { let question = data[i].question ? data[i].question : ""
-        let options = data[i].options ? data[i].options : []
-        let tables = data[i].tables ? data[i].tables : []
-        let pre = data[i].pre ? data[i].pre : ""
-        let scene=req.body.scene
+        for (let i = 0; i < data.length; i++) {
+            let question = data[i].question ? data[i].question : ""
+            let options = data[i].options ? data[i].options : []
+            let tables = data[i].tables ? data[i].tables : []
+            let pre = data[i].pre ? data[i].pre : ""
+            let scene = req.body.scene
 
-        let saveData = {
-            
-            question: question,
-            pre:pre,
-            options: options,
-            tables: tables,
-            scene:scene,
-            start:data[i].start?data[i].start:0
+            let saveData = {
 
+                question: question,
+                pre: pre,
+                options: options,
+                tables: tables,
+                scene: scene,
+                start: data[i].start ? data[i].start : 0
 
-        }
-        
-        Question.create(saveData).then((result)=>{
-            console.log(result)
-            if(result.start){
-               savedQuestion=result
             }
 
-        if (result) {
-            count++
-           if(count==data.length){ 
-            scenario_details.updateOne({_id:scene},{$set:{actionId:savedQuestion._id}}).then((data)=>{
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Save Successfully",
-                data: savedQuestion
+            Question.create(saveData).then((result) => {
+                console.log(result)
+                if (result.start) {
+                    savedQuestion = result
+                }
+
+                if (result) {
+                    count++
+                    if (count == data.length) {
+                        scenario_details.updateOne({ _id: scene }, { $set: { actionId: savedQuestion._id } }).then((data) => {
+                            res.status(200).json({
+                                error: false,
+                                code: 200,
+                                message: "Save Successfully",
+                                data: savedQuestion
+                            })
+                        })
+                    }
+
+                } else {
+                    res.status(404).json({
+                        error: true,
+                        code: 404,
+                        message: "",
+                    })
+                }
             })
-        })
         }
-        
-        } else {
-            res.status(404).json({
-                error: true,
-                code: 404,
-                message: "",
-            })
-        }
-       })
-    }
-    
 
     } catch (error) {
         console.log(error)
@@ -106,17 +107,18 @@ let savedQuestion
     }
 
 });
- 
 
+/************************ Get Question By Next and Pre Action Id Id of KMS ******************* */
 app.post('/getQuestionById', async (req, res) => {
+    
     try {
         const actionId = req.body.actionId ? req.body.actionId : null
-        const question = await Question.find({ pre:actionId});
+        const question = await Question.find({ pre: actionId });
         console.log('find');
         if (question) {
             console.log(question.length);
             res.status(201).send(question);
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(error);
@@ -124,15 +126,17 @@ app.post('/getQuestionById', async (req, res) => {
 
 });
 
+/************************ Get Question by Scenerio Action Id of KMS ******************* */
 app.post('/getQuestionByScenerio', async (req, res) => {
+
     try {
         const actionId = req.body.actionId ? req.body.actionId : null
-        const question = await Question.find({ _id:actionId});
-        
+        const question = await Question.find({ _id: actionId });
+
         if (question) {
             console.log(question.length);
             res.status(201).send(question);
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(error);
@@ -140,17 +144,15 @@ app.post('/getQuestionByScenerio', async (req, res) => {
 
 });
 
+/************************ Get All Questions and Options of KMS ******************* */
+app.get('/getQuestion', async (req, res) => {
 
-
-app.get('/getQuestion',async(req,res)=>{
-
-    //const questions = req.params.question ? req.params.question : "" 
     try {
-        const result = await Question.find({} ,{created_date:0, __v:0 });
+        const result = await Question.find({}, { created_date: 0, __v: 0 });
         if (result) {
             console.log(result.length);
             res.status(201).send(result);
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(err);
@@ -158,16 +160,15 @@ app.get('/getQuestion',async(req,res)=>{
 
 });
 
+/************************ Get All Scenerio Categories Action Id of KMS ******************* */
+app.get('/getscenario', async (req, res) => {
 
-app.get('/getscenario',async(req,res)=>{
-
-    //const questions = req.params.question ? req.params.question : "" 
     try {
         const result = await scenario_details.find({});
         if (result) {
             console.log(result.length);
             res.status(201).send(result);
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(err);
@@ -175,35 +176,36 @@ app.get('/getscenario',async(req,res)=>{
 
 });
 
+/************************ Get Items of Scenerio Action Id of KMS ******************* */
+app.post('/getItemsScenerio', async (req, res) => {
 
-
-app.post('/getItemsScenerio',async(req,res)=>{
-
-    const scene = req.body.scene ? req.body.scene : "" 
+    const scene = req.body.scene ? req.body.scene : ""
     try {
-        const result = await Question.find({scene:scene});
+        const result = await Question.find({ scene: scene });
         if (result) {
             console.log(result.length);
             res.status(201).send(result);
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(err);
     }
 
 });
-app.post('/updateQuestion',async(req,res)=>{
-    
+
+/************************ Edit Questions and Options of KMS ******************* */
+app.post('/updateQuestion', async (req, res) => {
+
     try {
-        let data = req.body.data ? req.body.data :[]
+        let data = req.body.data ? req.body.data : []
         let result
 
-        for(i=0;i<data.length;i++){
-            let id= data[i]._id
+        for (i = 0; i < data.length; i++) {
+            let id = data[i]._id
             delete data[i]._id
-            result = await Question.updateOne({_id:ObjectId(id)},{$set:data[i]},{new: true});
+            result = await Question.updateOne({ _id: ObjectId(id) }, { $set: data[i] }, { new: true });
         }
-        
+
         if (result) {
             console.log(result);
             res.status(200).json({
@@ -212,7 +214,7 @@ app.post('/updateQuestion',async(req,res)=>{
                 message: "Update Successfully",
                 data: []
             });
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(error);
@@ -220,17 +222,17 @@ app.post('/updateQuestion',async(req,res)=>{
 
 })
 
-app.post('/getscenarioDetails',async(req,res)=>{
-    console.log("qqqqqqqqqqqqqqqqqqq")
+/************************ Get Scenerio Details by Scenario Id of KMS ******************* */
+app.post('/getscenarioDetails', async (req, res) => {
 
-    const scenarioId = req.body.scenario_id ? req.body.scenario_id : "" 
+    const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
 
     try {
-        const result = await scenario_details.find({_id:ObjectId(scenarioId)});
+        const result = await scenario_details.find({ _id: ObjectId(scenarioId) });
         if (result) {
             console.log(result.length);
             res.status(201).send(result);
-        } 
+        }
     }
     catch (error) {
         res.status(400).send(error);
@@ -238,13 +240,14 @@ app.post('/getscenarioDetails',async(req,res)=>{
 
 });
 
-app.post("/sceneraioDetails",(req,res)=>{
-    scenario_details.findOne({_id:req.body.id}).then((data)=>{
+/************************ Get Scenerio Details by Scenario Id of KMS ******************* */
+app.post("/sceneraioDetails", (req, res) => {
+    scenario_details.findOne({ _id: req.body.id }).then((data) => {
         res.send(data)
     })
 })
 
-
+/************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
 // app.post('/deleteSceine', async (req, res) => {
 //     console.log("qqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
 //     let id = req.body.id
