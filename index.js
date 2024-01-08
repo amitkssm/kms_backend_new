@@ -413,8 +413,8 @@ app.post("/updateSceneraioCount", (req, res) => {
 })
 
 /************************ Get Users based on user role of KMS ********************** */
-app.post('/getUsers', async (req, res) => {
-    console.log("http://localhost:2222/getUsers")
+app.post('/getUsersBasedOnUserRole', async (req, res) => {
+    console.log("http://localhost:2222/getUsersBasedOnUserRole")
 
     const userRole = req.body.user_role ? req.body.user_role : ""
     try {
