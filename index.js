@@ -487,7 +487,7 @@ function generateUniqueToken() {
 
 // Example usage
 const resetToken = generateUniqueToken();
-console.log(resetToken,"tokennnnnnnnnnnnnnn");
+// console.log(resetToken,"tokennnnnnnnnnnnnnn");
 
 const nodemailer = require('nodemailer');
 
