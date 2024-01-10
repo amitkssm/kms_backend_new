@@ -69,12 +69,12 @@ const verifyToken = (req, res, next) => {
   const token = req.headers['authorization'];
 
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized: Missing token' });
+    return res.status(401).json({ message: 'Unauthorized : Missing token' });
   }
 
   jwt.verify(token, secretKey, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: 'Forbidden: Invalid token' });
+      return res.status(403).json({ message: 'Forbidden : Invalid token' });
     }
 
     req.user = user;
@@ -82,12 +82,10 @@ const verifyToken = (req, res, next) => {
   });
 };
 
-
 // Protected route using the verifyToken middleware
 app.get('/protected', verifyToken, (req, res) => {
   res.json({ message: 'This is a protected route', user: req.user });
 });
-
 
 
 //=========================================== KMS API START =====================================================//
@@ -165,7 +163,7 @@ app.post("/login", upload, async (req, res) => {
             })
         }
         else {
-            const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
+            const token = jwt.sign({ email }, secretKey);
             const isMatch = await decryptPassword(password1, user.password)
             if (isMatch) {
                 res.status(201).json({
