@@ -3,6 +3,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const fs = require('fs')
+const jwt = require('jsonwebtoken');
 const multer = require("multer");
 var bcrypt = require('bcryptjs');
 const ObjectId = require('mongoose').Types.ObjectId;
@@ -58,6 +59,36 @@ const decryptPassword = async (getpassword, userpassword) => {
     const validPass = await bcrypt.compare(getpassword, userpassword)
     return validPass;
 }
+
+//====================================== Function For JWT ===============================================//
+
+const secretKey = 'kms-ak-node'; // Replace with your own secret key
+
+// Middleware to check JWT token
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: Missing token' });
+  }
+
+  jwt.verify(token, secretKey, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Forbidden: Invalid token' });
+    }
+
+    req.user = user;
+    next();
+  });
+};
+
+
+// Protected route using the verifyToken middleware
+app.get('/protected', verifyToken, (req, res) => {
+  res.json({ message: 'This is a protected route', user: req.user });
+});
+
+
 
 //=========================================== KMS API START =====================================================//
 
@@ -134,16 +165,16 @@ app.post("/login", upload, async (req, res) => {
             })
         }
         else {
+            const token = jwt.sign({ email }, secretKey, { expiresIn: '1h' });
             const isMatch = await decryptPassword(password1, user.password)
             if (isMatch) {
-
                 res.status(201).json({
                     error: false,
                     code: 201,
                     message: "User Logged In",
-                    result: user
+                    result: user,
+                    token: token
                 })
-
             }
             else {
                 return res.status(400).send({
@@ -165,7 +196,7 @@ app.post("/login", upload, async (req, res) => {
 });
 
 /************************ Save category of KMS ******************* */
-app.post('/saveScenario', async (req, res) => {
+app.post('/saveScenario',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/saveScenario")
 
     const question = await new scenario_details(req.body);
@@ -179,7 +210,7 @@ app.post('/saveScenario', async (req, res) => {
 })
 
 /************************ Save Question and Options of KMS ******************* */
-app.post("/saveQuestion", async (req, res) => {
+app.post("/saveQuestion",verifyToken, async (req, res) => {
     console.log("http://localhost:2222/saveQuestion")
 
     console.log(req.body.data[0].options)
@@ -247,7 +278,7 @@ app.post("/saveQuestion", async (req, res) => {
 });
 
 /************************ Get Question By Next and Pre Action Id Id of KMS ******************* */
-app.post('/getQuestionById', async (req, res) => {
+app.post('/getQuestionById',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestionById")
 
     try {
@@ -266,7 +297,7 @@ app.post('/getQuestionById', async (req, res) => {
 });
 
 /************************ Get Question by Scenerio Action Id of KMS ******************* */
-app.post('/getQuestionByScenerio', async (req, res) => {
+app.post('/getQuestionByScenerio',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestionByScenerio")
 
     try {
@@ -285,7 +316,7 @@ app.post('/getQuestionByScenerio', async (req, res) => {
 });
 
 /************************ Get All Questions and Options of KMS ******************* */
-app.get('/getQuestion', async (req, res) => {
+app.get('/getQuestion',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestion")
 
     try {
@@ -302,7 +333,7 @@ app.get('/getQuestion', async (req, res) => {
 });
 
 /************************ Get All Scenerio Categories Action Id of KMS ******************* */
-app.get('/getscenario', async (req, res) => {
+app.get('/getscenario',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenario")
 
     try {
@@ -319,7 +350,7 @@ app.get('/getscenario', async (req, res) => {
 });
 
 /************************ Get Items of Scenerio Action Id of KMS ********************** */
-app.post('/getItemsScenerio', async (req, res) => {
+app.post('/getItemsScenerio',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getItemsScenerio")
 
     const scene = req.body.scene ? req.body.scene : ""
@@ -337,7 +368,7 @@ app.post('/getItemsScenerio', async (req, res) => {
 });
 
 /************************ Edit Questions and Options of KMS ******************* */
-app.post('/updateQuestion', async (req, res) => {
+app.post('/updateQuestion',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/updateQuestion")
 
     try {
@@ -367,7 +398,7 @@ app.post('/updateQuestion', async (req, res) => {
 })
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
-app.post('/getscenarioDetails', async (req, res) => {
+app.post('/getscenarioDetails',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenarioDetails")
 
     const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
@@ -387,7 +418,7 @@ app.post('/getscenarioDetails', async (req, res) => {
 });
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
-app.post("/sceneraioDetails", (req, res) => {
+app.post("/sceneraioDetails", verifyToken,(req, res) => {
     console.log("http://localhost:2222/sceneraioDetails")
 
     scenario_details.findOne({ _id: req.body.id }).then((data) => {
@@ -397,7 +428,7 @@ app.post("/sceneraioDetails", (req, res) => {
 })
 
 /************************ Increase Count by Scenario Id of KMS ******************* */
-app.post("/updateSceneraioCount", (req, res) => {
+app.post("/updateSceneraioCount",verifyToken, (req, res) => {
     console.log("http://localhost:2222/updateSceneraioCount")
 
     try {
@@ -413,7 +444,7 @@ app.post("/updateSceneraioCount", (req, res) => {
 })
 
 /************************ Get Users based on user role of KMS ********************** */
-app.post('/getUsersBasedOnUserRole', async (req, res) => {
+app.post('/getUsersBasedOnUserRole',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getUsersBasedOnUserRole")
 
     const userRole = req.body.user_role ? req.body.user_role : ""
@@ -437,7 +468,7 @@ app.post('/getUsersBasedOnUserRole', async (req, res) => {
 });
 
 /************************ Get Users based on Admin Id of KMS ********************** */
-app.post('/getAgentBasedOnAdminId', async (req, res) => {
+app.post('/getAgentBasedOnAdminId',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getAgentBasedOnAdminId")
 
     const AdminId = req.body.admin_id ? req.body.admin_id : ""
