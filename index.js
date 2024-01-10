@@ -356,7 +356,7 @@ app.post('/getItemsScenerio',verifyToken, async (req, res) => {
         const result = await Question.find({ scene: scene });
         if (result) {
             console.log(result.length);
-            res.status(201).send(result);
+            res.status(201).send(result);   
         }
     }
     catch (error) {
