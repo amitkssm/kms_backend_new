@@ -295,7 +295,7 @@ app.post('/getQuestionById',verifyToken, async (req, res) => {
 });
 
 /************************ Get Question by Scenerio Action Id of KMS ******************* */
-app.post('/getQuestionByScenerio', async (req, res) => {
+app.post('/getQuestionByScenerio',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestionByScenerio")
 
     try {
