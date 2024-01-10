@@ -295,12 +295,12 @@ app.post('/getQuestionById',verifyToken, async (req, res) => {
 });
 
 /************************ Get Question by Scenerio Action Id of KMS ******************* */
-app.post('/getQuestionByScenerio',verifyToken, async (req, res) => {
+app.post('/getQuestionByScenerio', async (req, res) => {
     console.log("http://localhost:2222/getQuestionByScenerio")
 
     try {
         const actionId = req.body.actionId ? req.body.actionId : null
-        const question = await Question.find({ _id: actionId });
+        const question = await Question.find({ _id: ObjectId(actionId) });
 
         if (question) {
             console.log(question.length);
