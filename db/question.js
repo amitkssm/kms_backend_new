@@ -10,6 +10,7 @@ const registrationSchema = new mongoose.Schema({
     address: String,
     user_role: String,
     admin_id: String,
+    time_spent: String,
     is_deleted: { type: Number, default: 0 },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
@@ -51,6 +52,13 @@ const scenarioSchema = new mongoose.Schema({
     expDate: String,
     brief: String,
     actionId: String,
+    admin_id:String,
+    time_spent: [
+       {
+        user_id:String,
+        time:String
+       } 
+    ],
     count: { type: Number, default: 0 },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }

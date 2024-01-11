@@ -66,25 +66,25 @@ const secretKey = 'kms-ak-node'; // Replace with your own secret key
 
 // Middleware to check JWT token
 const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization'];
+    const token = req.headers['authorization'];
 
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized : Missing token' });
-  }
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.status(403).json({ message: 'Forbidden : Invalid token' });
+    if (!token) {
+        return res.status(401).json({ message: 'Unauthorized : Missing token' });
     }
 
-    req.user = user;
-    next();
-  });
+    jwt.verify(token, secretKey, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Forbidden : Invalid token' });
+        }
+
+        req.user = user;
+        next();
+    });
 };
 
 // Protected route using the verifyToken middleware
 app.get('/protected', verifyToken, (req, res) => {
-  res.json({ message: 'This is a protected route', user: req.user });
+    res.json({ message: 'This is a protected route', user: req.user });
 });
 
 
@@ -199,10 +199,20 @@ app.post('/saveScenario',verifyToken, async (req, res) => {
 
     const question = await new scenario_details(req.body);
     question.save().then((question) => {
-        res.status(201).send(question);
+        res.status(201).json({
+            error: false,
+            code: 201,
+            message: "Scenario save Successfully",
+            data: question
+        })
         console.log('save');
     }).catch((error) => {
-        res.status(400).send(error);
+        res.status(400).json({
+            error: true,
+            code: 400,
+            message: "sonthing went worng",
+            data: error
+        })
     })
 
 })
@@ -285,7 +295,12 @@ app.post('/getQuestionById',verifyToken, async (req, res) => {
         console.log('find');
         if (question) {
             console.log(question.length);
-            res.status(201).send(question);
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Question Fetched Successfully",
+                data: question
+            })
         }
     }
     catch (error) {
@@ -304,7 +319,12 @@ app.post('/getQuestionByScenerio',verifyToken, async (req, res) => {
 
         if (question) {
             console.log(question.length);
-            res.status(201).send(question);
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Question Fetched Successfully",
+                data: question
+            })
         }
     }
     catch (error) {
@@ -321,7 +341,12 @@ app.get('/getQuestion',verifyToken, async (req, res) => {
         const result = await Question.find({}, { created_date: 0, __v: 0 });
         if (result) {
             console.log(result.length);
-            res.status(201).send(result);
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Question Fetched Successfully",
+                data: result
+            })
         }
     }
     catch (error) {
@@ -338,7 +363,12 @@ app.get('/getscenario',verifyToken, async (req, res) => {
         const result = await scenario_details.find({});
         if (result) {
             console.log(result.length);
-            res.status(201).send(result);
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Scenario Fetched Successfully",
+                data: result
+            })
         }
     }
     catch (error) {
@@ -356,7 +386,12 @@ app.post('/getItemsScenerio',verifyToken, async (req, res) => {
         const result = await Question.find({ scene: scene });
         if (result) {
             console.log(result.length);
-            res.status(201).send(result);   
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Scenerio Items Fetched Successfully",
+                data: result
+            })
         }
     }
     catch (error) {
@@ -366,7 +401,7 @@ app.post('/getItemsScenerio',verifyToken, async (req, res) => {
 });
 
 /************************ Edit Questions and Options of KMS ******************* */
-app.post('/updateQuestion',verifyToken, async (req, res) => {
+app.post('/updateQuestion', async (req, res) => {
     console.log("http://localhost:2222/updateQuestion")
 
     try {
@@ -406,7 +441,12 @@ app.post('/getscenarioDetails',verifyToken, async (req, res) => {
         let count = await scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { "$inc": { "count": 1 } })
         if (result) {
             console.log(result.length);
-            res.status(201).send(result);
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Scenerio Details Fetched Successfully",
+                data: result
+            })
         }
     }
     catch (error) {
@@ -416,11 +456,16 @@ app.post('/getscenarioDetails',verifyToken, async (req, res) => {
 });
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
-app.post("/sceneraioDetails", verifyToken,(req, res) => {
+app.post("/sceneraioDetails", verifyToken, (req, res) => {
     console.log("http://localhost:2222/sceneraioDetails")
 
     scenario_details.findOne({ _id: req.body.id }).then((data) => {
-        res.send(data)
+        res.status(201).json({
+            error: false,
+            code: 201,
+            message: "Scenerio Details Fetched Successfully",
+            data: data
+        })
     })
 
 })
@@ -432,7 +477,12 @@ app.post("/updateSceneraioCount",verifyToken, (req, res) => {
     try {
         const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
         scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { "$inc": { "count": 1 } }).then((data) => {
-            res.send(data)
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Update Sceneraio Count Successfully",
+                data: data
+            })
         })
 
     } catch (error) {
@@ -442,7 +492,7 @@ app.post("/updateSceneraioCount",verifyToken, (req, res) => {
 })
 
 /************************ Get Users based on user role of KMS ********************** */
-app.post('/getUsersBasedOnUserRole',verifyToken, async (req, res) => {
+app.post('/getUsersBasedOnUserRole', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getUsersBasedOnUserRole")
 
     const userRole = req.body.user_role ? req.body.user_role : ""
@@ -477,7 +527,7 @@ app.post('/getAgentBasedOnAdminId',verifyToken, async (req, res) => {
             res.status(200).json({
                 error: false,
                 code: 200,
-                message: "Update Successfully",
+                message: "Successfully",
                 data: result,
                 count: result.length
             });
@@ -489,7 +539,69 @@ app.post('/getAgentBasedOnAdminId',verifyToken, async (req, res) => {
 
 });
 
+/************************ Get All Ranking wise Scenerio Based on of KMS ******************* */
+app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
+    console.log("http://localhost:2222/getscenarioRankingWise")
 
+    try {
+        const result = await scenario_details.find({});
+        let newArray = result.map(function (item) {
+            return {
+                scenario: item.scenario,
+                circle: item.circle,
+                liveDate: item.liveDate,
+                expDate: item.expDate,
+                brief: item.brief,
+                actionId: item.actionId,
+                count: item.count,
+                newProperty: 'x'
+            }
+        }).sort(function (x, z) {
+            return x.count - z.count;
+        });
+
+        if (newArray) {
+            console.log(result.length);
+            res.status(201).json({
+                error: true,
+                code: 201,
+                message: "Scenerio Details Fetched Successfully",
+                data: newArray
+            })
+        }
+    }
+    catch (error) {
+        res.status(400).send(err);
+    }
+
+});
+
+
+
+/************************ Increase Count by Scenario Id of KMS ******************* */
+app.post("/updateUserAndScenarioForTimeSpent",verifyToken, (req, res) => {
+    console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent")
+
+    try {
+        const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
+        const user_id = req.body.user_id ? req.body.user_id : ""
+        const time_spent = req.body.time_spent ? req.body.time_spent : ""
+        Registration.updateOne({ "_id": ObjectId(user_id) }, { $set: { time_spent: time_spent } }).then((data) => {
+            scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { $push: {time_spent:{user_id:user_id,time:time_spent} }}).then((data) => {
+                res.status(200).json({
+                    error: false,
+                    code: 200,
+                    message: "Time Updated Successfully",
+                    data: []
+                });
+            })
+        })
+
+    } catch (error) {
+        res.status(400).send(error);
+    }
+
+})
 
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
@@ -587,7 +699,7 @@ app.post("/forgot-password", async (req, res) => {
 
         // Generate a unique token or temporary password reset link
         const resetToken = generateUniqueToken(); // Implement this function
-        console.log(resetToken,"pppppppppppaaaaaaaaaaaaaaaa")
+        console.log(resetToken, "pppppppppppaaaaaaaaaaaaaaaa")
         // Store the token, user ID, and expiration time in the database
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
