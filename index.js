@@ -194,7 +194,7 @@ app.post("/login", upload, async (req, res) => {
 });
 
 /************************ Save category of KMS ******************* */
-app.post('/saveScenario',verifyToken, async (req, res) => {
+app.post('/saveScenario', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/saveScenario")
 
     const question = await new scenario_details(req.body);
@@ -218,7 +218,7 @@ app.post('/saveScenario',verifyToken, async (req, res) => {
 })
 
 /************************ Save Question and Options of KMS ******************* */
-app.post("/saveQuestion",verifyToken, async (req, res) => {
+app.post("/saveQuestion", verifyToken, async (req, res) => {
     console.log("http://localhost:2222/saveQuestion")
 
     console.log(req.body.data[0].options)
@@ -286,7 +286,7 @@ app.post("/saveQuestion",verifyToken, async (req, res) => {
 });
 
 /************************ Get Question By Next and Pre Action Id Id of KMS ******************* */
-app.post('/getQuestionById',verifyToken, async (req, res) => {
+app.post('/getQuestionById', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestionById")
 
     try {
@@ -310,7 +310,7 @@ app.post('/getQuestionById',verifyToken, async (req, res) => {
 });
 
 /************************ Get Question by Scenerio Action Id of KMS ******************* */
-app.post('/getQuestionByScenerio',verifyToken, async (req, res) => {
+app.post('/getQuestionByScenerio', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestionByScenerio")
 
     try {
@@ -334,7 +334,7 @@ app.post('/getQuestionByScenerio',verifyToken, async (req, res) => {
 });
 
 /************************ Get All Questions and Options of KMS ******************* */
-app.get('/getQuestion',verifyToken, async (req, res) => {
+app.get('/getQuestion', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getQuestion")
 
     try {
@@ -356,7 +356,7 @@ app.get('/getQuestion',verifyToken, async (req, res) => {
 });
 
 /************************ Get All Scenerio Categories Action Id of KMS ******************* */
-app.get('/getscenario',verifyToken, async (req, res) => {
+app.get('/getscenario', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenario")
 
     try {
@@ -378,7 +378,7 @@ app.get('/getscenario',verifyToken, async (req, res) => {
 });
 
 /************************ Get Items of Scenerio Action Id of KMS ********************** */
-app.post('/getItemsScenerio',verifyToken, async (req, res) => {
+app.post('/getItemsScenerio',  async (req, res) => {
     console.log("http://localhost:2222/getItemsScenerio")
 
     const scene = req.body.scene ? req.body.scene : ""
@@ -431,7 +431,7 @@ app.post('/updateQuestion', async (req, res) => {
 })
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
-app.post('/getscenarioDetails',verifyToken, async (req, res) => {
+app.post('/getscenarioDetails', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenarioDetails")
 
     const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
@@ -471,7 +471,7 @@ app.post("/sceneraioDetails", verifyToken, (req, res) => {
 })
 
 /************************ Increase Count by Scenario Id of KMS ******************* */
-app.post("/updateSceneraioCount",verifyToken, (req, res) => {
+app.post("/updateSceneraioCount", verifyToken, (req, res) => {
     console.log("http://localhost:2222/updateSceneraioCount")
 
     try {
@@ -516,7 +516,7 @@ app.post('/getUsersBasedOnUserRole', verifyToken, async (req, res) => {
 });
 
 /************************ Get Users based on Admin Id of KMS ********************** */
-app.post('/getAgentBasedOnAdminId',verifyToken, async (req, res) => {
+app.post('/getAgentBasedOnAdminId', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getAgentBasedOnAdminId")
 
     const AdminId = req.body.admin_id ? req.body.admin_id : ""
@@ -540,7 +540,7 @@ app.post('/getAgentBasedOnAdminId',verifyToken, async (req, res) => {
 });
 
 /************************ Get All Ranking wise Scenerio Based on of KMS ******************* */
-app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
+app.get('/getscenarioRankingWise', async (req, res) => {
     console.log("http://localhost:2222/getscenarioRankingWise")
 
     try {
@@ -554,10 +554,10 @@ app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
                 brief: item.brief,
                 actionId: item.actionId,
                 count: item.count,
-                newProperty: 'x'
+                // newProperty: 'x'
             }
         }).sort(function (x, z) {
-            return x.count - z.count;
+            return z.count - x.count;
         });
 
         if (newArray) {
@@ -578,16 +578,19 @@ app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
 
 
 
-/************************ Increase Count by Scenario Id of KMS ******************* */
-app.post("/updateUserAndScenarioForTimeSpent",verifyToken, (req, res) => {
+/************************ update User And Scenario For Time Spent ******************* */
+app.post("/updateUserAndScenarioForTimeSpent",  (req, res) => {
     console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent")
 
     try {
         const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
         const user_id = req.body.user_id ? req.body.user_id : ""
         const time_spent = req.body.time_spent ? req.body.time_spent : ""
-        Registration.updateOne({ "_id": ObjectId(user_id) }, { $set: { time_spent: time_spent } }).then((data) => {
-            scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { $push: {time_spent:{user_id:user_id,time:time_spent} }}).then((data) => {
+
+        // {$inc: {time_spent: time_spent}}
+
+        Registration.updateOne({ "_id": ObjectId(user_id) }, { $push: { time_spent: time_spent }}).then((data) => {
+            scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { $push: { time_spent: { user_id: user_id, time: time_spent } } }).then((data) => {
                 res.status(200).json({
                     error: false,
                     code: 200,
@@ -602,6 +605,70 @@ app.post("/updateUserAndScenarioForTimeSpent",verifyToken, (req, res) => {
     }
 
 })
+
+
+/************************ Get Users and scenario details with time spent of KMS ********************** */
+app.post('/getUsersDetailsWithTimespent', async (req, res) => {
+    console.log("http://localhost:2222/getUsersDetailsWithTimespent")
+
+    const scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
+    const user_id = req.body.user_id ? req.body.user_id : ""
+    try {
+        const result = await scenario_details.aggregate([
+            {
+                "$match": { "_id": ObjectId(scenario_id) }
+            },
+            {
+                "$unwind": "$time_spent"
+            },
+            {
+                "$lookup": {
+                    "from": "registrations",
+                    "let": { "userId": "$time_spent.user_id" },
+                    "pipeline": [
+                        {
+                            "$match": {
+                                "$expr": {
+                                    "$eq": ["$_id", "$$userId"],
+                                },
+                            },
+                        },
+                    ],
+                    "as": "user_details"
+                }
+            },
+            // {
+            //     "$group": {
+            //         "_id": "$_id",
+            //         "scenario": { "$first": "$scenario" },
+            //         "actionId": { "$first": "$actionId" },
+            //         "created": { "$first": "$created" },
+            //         "modified": { "$first": "$modified" },
+            //         "__v": { "$first": "$__v" },
+            //         "count": { "$first": "$count" },
+            //         "time_spent": { "$push": "$time_spent" },
+            //         "user_details": { "$first": "$user_details" }
+            //     }
+            // }
+        ]);
+        if (result) {
+            console.log(result.length);
+            res.status(200).json({
+                error: false,
+                code: 200,
+                message: "Successfully",
+                data: result,
+                count: result.length
+            });
+        }
+    }
+    catch (error) {
+        console.log(error)
+        res.status(400).send(error);
+    }
+
+});
+
 
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
