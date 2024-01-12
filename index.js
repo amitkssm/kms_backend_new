@@ -378,7 +378,7 @@ app.get('/getscenario', verifyToken, async (req, res) => {
 });
 
 /************************ Get Items of Scenerio Action Id of KMS ********************** */
-app.post('/getItemsScenerio',  async (req, res) => {
+app.post('/getItemsScenerio', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getItemsScenerio")
 
     const scene = req.body.scene ? req.body.scene : ""
@@ -401,7 +401,7 @@ app.post('/getItemsScenerio',  async (req, res) => {
 });
 
 /************************ Edit Questions and Options of KMS ******************* */
-app.post('/updateQuestion', async (req, res) => {
+app.post('/updateQuestion',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/updateQuestion")
 
     try {
@@ -540,7 +540,7 @@ app.post('/getAgentBasedOnAdminId', verifyToken, async (req, res) => {
 });
 
 /************************ Get All Ranking wise Scenerio Based on of KMS ******************* */
-app.get('/getscenarioRankingWise', async (req, res) => {
+app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenarioRankingWise")
 
     try {
@@ -579,7 +579,7 @@ app.get('/getscenarioRankingWise', async (req, res) => {
 
 
 /************************ update User And Scenario For Time Spent ******************* */
-app.post("/updateUserAndScenarioForTimeSpent",  (req, res) => {
+app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
     console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent")
 
     try {
@@ -608,7 +608,7 @@ app.post("/updateUserAndScenarioForTimeSpent",  (req, res) => {
 
 
 /************************ Get Users and scenario details with time spent of KMS ********************** */
-app.post('/getUsersDetailsWithTimespent', async (req, res) => {
+app.post('/getUsersDetailsWithTimespent', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getUsersDetailsWithTimespent")
 
     const scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
