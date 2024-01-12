@@ -23,7 +23,7 @@ app.use(cors());
 
 
 app.get('/', (req, res) => {
-    res.send("home page");
+    res.send("Home Page Of KMS");
 })
 
 app.listen((2222), () => {
