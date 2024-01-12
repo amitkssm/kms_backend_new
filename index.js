@@ -401,7 +401,7 @@ app.post('/getItemsScenerio', verifyToken, async (req, res) => {
 });
 
 /************************ Edit Questions and Options of KMS ******************* */
-app.post('/updateQuestion',verifyToken, async (req, res) => {
+app.post('/updateQuestion', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/updateQuestion")
 
     try {
@@ -540,7 +540,7 @@ app.post('/getAgentBasedOnAdminId', verifyToken, async (req, res) => {
 });
 
 /************************ Get All Ranking wise Scenerio Based on of KMS ******************* */
-app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
+app.get('/getscenarioRankingWise', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenarioRankingWise")
 
     try {
@@ -580,93 +580,284 @@ app.get('/getscenarioRankingWise',verifyToken, async (req, res) => {
 
 /************************ update User And Scenario For Time Spent ******************* */
 app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
-    console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent")
+    console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
 
     try {
-        const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
-        const user_id = req.body.user_id ? req.body.user_id : ""
-        const time_spent = req.body.time_spent ? req.body.time_spent : ""
-
-        // {$inc: {time_spent: time_spent}}
-
-        Registration.updateOne({ "_id": ObjectId(user_id) }, { $push: { time_spent: time_spent }}).then((data) => {
-            scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { $push: { time_spent: { user_id: user_id, time: time_spent } } }).then((data) => {
-                res.status(200).json({
-                    error: false,
-                    code: 200,
-                    message: "Time Updated Successfully",
-                    data: []
+        const scenarioId = req.body.scenario_id ? req.body.scenario_id : "";
+        const user_id = req.body.user_id ? req.body.user_id : "";
+        const time_spent = req.body.time_spent ? parseInt(req.body.time_spent) : 0; // Convert time_spent to integer
+        // Update Registration table
+        Registration.findOneAndUpdate(
+            {
+                "_id": ObjectId(user_id),
+                "time_spent.scenario_id": ObjectId(scenarioId)
+            },
+            { $inc: { "time_spent.$.time": time_spent } },
+            { new: true }
+        ).then((registrationData) => {
+            if (!registrationData) {
+                // If the combination doesn't exist, add a new entry in the Registration table
+                Registration.updateOne(
+                    { "_id": ObjectId(user_id) },
+                    { $push: { time_spent: { scenario_id: ObjectId(scenarioId), time: time_spent } } }
+                ).then(() => {
+                    res.status(200).json({
+                        error: false,
+                        code: 200,
+                        message: "Time Updated Successfully",
+                        data: []
+                    });
                 });
-            })
-        })
+            }
+
+            // Update scenario_details table
+            scenario_details.findOneAndUpdate(
+                {
+                    "_id": ObjectId(scenarioId),
+                    "time_spent.user_id": ObjectId(user_id)
+                },
+                { $inc: { "time_spent.$.time": parseInt(time_spent) } },
+                { new: true }
+            ).then((scenarioDetailsData) => {
+                if (!scenarioDetailsData) {
+                    // If the combination doesn't exist, add a new entry in the scenario_details table
+                    scenario_details.updateOne(
+                        { "_id": ObjectId(scenarioId) },
+                        { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } } }
+                    ).then(() => {
+                        res.status(200).json({
+                            error: false,
+                            code: 200,
+                            message: "Time Updated Successfully",
+                            data: []
+                        });
+                    });
+                } else {
+                    // If the combination exists, update the time in the existing entry in the scenario_details table
+                    res.status(200).json({
+                        error: false,
+                        code: 200,
+                        message: "Time Updated Successfully",
+                        data: []
+                    });
+                }
+            });
+        });
 
     } catch (error) {
+        console.log("error::::", error)
         res.status(400).send(error);
     }
+});
 
-})
 
 
-/************************ Get Users and scenario details with time spent of KMS ********************** */
+/************************ Get Users and Scenario details with time spent of KMS ********************** */
+// app.post('/getUsersDetailsWithTimespentOld', verifyToken,  async (req, res) => {
+//     console.log("http://localhost:2222/getUsersDetailsWithTimespent")
+
+//     const scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
+//     const user_id = req.body.user_id ? req.body.user_id : ""
+//     try {
+//         const result = await scenario_details.aggregate([
+//             {
+//                 "$match": { "_id": ObjectId(scenario_id) }
+//             },
+//             {
+//                 "$unwind": "$time_spent"
+//             },
+//             {
+//                 "$lookup": {
+//                     "from": "registrations",
+//                     "let": { "userId": "$time_spent.user_id" },
+//                     "pipeline": [
+//                         {
+//                             "$match": {
+//                                 "$expr": {
+//                                     "$eq": ["$_id", "$$userId"],
+//                                 },
+//                             },
+//                         },
+//                     ],
+//                     "as": "user_details"
+//                 }
+//             },
+//             // {
+//             //     "$group": {
+//             //         "_id": "$_id",
+//             //         "scenario": { "$first": "$scenario" },
+//             //         "actionId": { "$first": "$actionId" },
+//             //         "created": { "$first": "$created" },
+//             //         "modified": { "$first": "$modified" },
+//             //         "__v": { "$first": "$__v" },
+//             //         "count": { "$first": "$count" },
+//             //         "time_spent": { "$push": "$time_spent" },
+//             //         "user_details": { "$first": "$user_details" }
+//             //     }
+//             // }
+//         ]);
+//         if (result) {
+//             console.log(result.length);
+//             res.status(200).json({
+//                 error: false,
+//                 code: 200,
+//                 message: "Successfully",
+//                 data: result,
+//                 count: result.length
+//             });
+//         }
+//     }
+//     catch (error) {
+//         console.log(error)
+//         res.status(400).send(error);
+//     }
+
+// });
+
+/************************ Get Users details with time spent of KMS ********************** */
 app.post('/getUsersDetailsWithTimespent', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getUsersDetailsWithTimespent")
+    console.log("http://localhost:2222/getUsersDetailsWithTimespent");
 
-    const scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
-    const user_id = req.body.user_id ? req.body.user_id : ""
+    const scenario_id = req.body.scenario_id ? req.body.scenario_id : "";
+    const user_id = req.body.user_id ? req.body.user_id : "";
+
     try {
         const result = await scenario_details.aggregate([
             {
                 "$match": { "_id": ObjectId(scenario_id) }
             },
             {
-                "$unwind": "$time_spent"
-            },
-            {
                 "$lookup": {
                     "from": "registrations",
-                    "let": { "userId": "$time_spent.user_id" },
-                    "pipeline": [
-                        {
-                            "$match": {
-                                "$expr": {
-                                    "$eq": ["$_id", "$$userId"],
-                                },
-                            },
-                        },
-                    ],
+                    "localField": "time_spent.user_id",
+                    "foreignField": "_id",
                     "as": "user_details"
                 }
             },
-            // {
-            //     "$group": {
-            //         "_id": "$_id",
-            //         "scenario": { "$first": "$scenario" },
-            //         "actionId": { "$first": "$actionId" },
-            //         "created": { "$first": "$created" },
-            //         "modified": { "$first": "$modified" },
-            //         "__v": { "$first": "$__v" },
-            //         "count": { "$first": "$count" },
-            //         "time_spent": { "$push": "$time_spent" },
-            //         "user_details": { "$first": "$user_details" }
-            //     }
-            // }
+            {
+                "$project": {
+                    "scenario": 1,
+                    "actionId": 1,
+                    "created": 1,
+                    "modified": 1,
+                    "__v": 1,
+                    "count": 1,
+                    "time_spent": 1,
+                    "user_details": {
+                        "_id": 1,
+                        "profile_image": 1,
+                        "name": 1,
+                        "mobile_number": 1,
+                        "email": 1,
+                        "user_role": 1,
+                        "admin_id": 1,
+                        "time_spent": 1,
+                        "is_deleted": 1
+                        // Add other fields you need from the registrations collection
+                    }
+                }
+            }
         ]);
-        if (result) {
-            console.log(result.length);
+
+        if (result.length > 0) {
             res.status(200).json({
                 error: false,
                 code: 200,
                 message: "Successfully",
-                data: result,
-                count: result.length
+                data: result[0], // Assuming you want a single scenario's details
+            });
+        } else {
+            res.status(404).json({
+                error: true,
+                code: 404,
+                message: "Scenario not found",
+                data: [],
             });
         }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Internal Server Error",
+            data: [],
+        });
     }
-    catch (error) {
-        console.log(error)
-        res.status(400).send(error);
-    }
+});
 
+/************************ Get scenario details with time spent of KMS ********************** */
+app.post('/getScenarioDetailsWithTimespent', verifyToken, async (req, res) => {
+    console.log("http://localhost:2222/getScenarioDetailsWithTimespent");
+
+    const scenario_id = req.body.scenario_id ? req.body.scenario_id : "";
+    const user_id = req.body.user_id ? req.body.user_id : "";
+
+    try {
+        const result = await Registration.aggregate([
+            {
+                "$match": { "_id": ObjectId(user_id) }
+            },
+            {
+                "$lookup": {
+                    "from": "scenario_details",
+                    "localField": "time_spent.scenario_id",
+                    "foreignField": "_id",
+                    "as": "scenario_details"
+                }
+            },
+            {
+                "$project": {
+                    "_id": 1,
+                    "profile_image": 1,
+                    "name": 1,
+                    "mobile_number": 1,
+                    "email": 1,
+                    "user_role": 1,
+                    "admin_id": 1,
+                    "is_deleted": 1,
+                    "time_spent": 1,
+                    "scenario_details": {
+                        "_id": 1,
+                        "scenario": 1,
+                        "circle":1,
+                        "brief":1,
+                        "expDate":1,
+                        "liveDate":1,
+                        "actionId": 1,
+                        "count": 1,
+                        "time_spent": 1,
+                        // "created": 1,
+                        // "modified": 1,
+                        // Add other fields you need from the registrations collection
+                    }
+                }
+            }
+        ]);
+
+        if (result.length > 0) {
+            res.status(200).json({
+                error: false,
+                code: 200,
+                message: "Successfully",
+                data: result[0], // Assuming you want a single scenario's details
+            });
+        } else {
+            res.status(404).json({
+                error: true,
+                code: 404,
+                message: "Scenario not found",
+                data: [],
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Internal Server Error",
+            data: [],
+        });
+    }
 });
 
 

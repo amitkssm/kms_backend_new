@@ -11,7 +11,12 @@ const registrationSchema = new mongoose.Schema({
     user_role: String,
     admin_id: String,
     // time_spent: Number,
-    time_spent: [],
+    time_spent: [
+        {
+            scenario_id:ObjectId,
+            time:Number
+        } 
+    ],
     is_deleted: { type: Number, default: 0 },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
@@ -57,7 +62,7 @@ const scenarioSchema = new mongoose.Schema({
     time_spent: [
        {
         user_id:ObjectId,
-        time:String
+        time:Number
        } 
     ],
     count: { type: Number, default: 0 },
