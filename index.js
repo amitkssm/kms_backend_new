@@ -96,7 +96,7 @@ app.post("/registration", upload, async (req, res) => {
 
     try {
 
-        let profile_image = req?.file.image ? req.file.image : ""
+        let profile_image = req.file?.image ? req.file.image : ""
         let name = req.body.name ? req.body.name : ""
         let mobile_number = req.body.mobile_number ? req.body.mobile_number : ""
         let email = req.body.email ? req.body.email : ""
