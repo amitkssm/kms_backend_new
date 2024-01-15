@@ -107,32 +107,75 @@ app.post("/registration", upload, async (req, res) => {
         let file = profile_image.fieldname + "-" + Date.now() + ".jpg"
         let bPassword = await bcryptPassword(password)
 
-        let saveData = {
-
-            profile_image: "http://localhost:2222/uploads/" + file,
-            name: name,
-            mobile_number: mobile_number,
-            email: email,
-            password: bPassword,
-            user_role: user_role,
-            admin_id: admin_id
-
+        function validateEmail(email) {
+            var regex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+            return regex.test(email);
         }
-        let result = await Registration.create(saveData)
 
-        if (result) {
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Registered Successfully",
-                data: result
-            })
+        function validatePhoneNumber(mobile_number) {
+            var regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+            return regex.test(mobile_number)
+        }
+
+        if (validateEmail(email)) {
+            console.log("Valid email!");
+
+            if (validatePhoneNumber(mobile_number)) {
+                console.log("Valid phone number!");
+
+                let FindUser = await Registration.findOne({ mobile_number: mobile_number })
+                if (FindUser) {
+                    res.status(400).json({
+                        error: false,
+                        code: 400,
+                        message: "Mobile Number exist, Please Try with another number !!!",
+                    })
+                }
+                else {
+
+                    let saveData = {
+
+                        profile_image: "http://localhost:2222/uploads/" + file,
+                        name: name,
+                        mobile_number: mobile_number,
+                        email: email,
+                        password: bPassword,
+                        user_role: user_role,
+                        admin_id: admin_id
+
+                    }
+                    let result = await Registration.create(saveData)
+
+                    if (result) {
+                        res.status(200).json({
+                            error: false,
+                            code: 200,
+                            message: "Registered Successfully",
+                            data: result
+                        })
+                    } else {
+                        res.status(404).json({
+                            error: true,
+                            code: 404,
+                            message: "Not Registered",
+                        })
+                    }
+                }
+            } else {
+                console.log("Invalid phone number!");
+                res.status(400).json({
+                    error: true,
+                    code: 400,
+                    message: "Invalid phone number!",
+                })
+            }
         } else {
-            res.status(404).json({
+            console.log("Invalid email!");
+            res.status(400).json({
                 error: true,
-                code: 404,
-                message: "Not Registered",
-            })
+                code: 400,
+                message: "Invalid email!",
+            });
         }
 
     } catch (error) {
@@ -141,7 +184,7 @@ app.post("/registration", upload, async (req, res) => {
             error: true,
             code: 400,
             message: "sonthing went worng",
-            data: error
+            data: error.message
         })
     }
 
@@ -577,7 +620,6 @@ app.get('/getscenarioRankingWise', verifyToken, async (req, res) => {
 });
 
 
-
 /************************ update User And Scenario For Time Spent ******************* */
 app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
     console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
@@ -592,14 +634,14 @@ app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
                 "_id": ObjectId(user_id),
                 "time_spent.scenario_id": ObjectId(scenarioId)
             },
-            { $inc: { "time_spent.$.time": time_spent } },
+            { $inc: { "time_spent.$.time": time_spent }, $set: { modified: Date.now() } },
             { new: true }
         ).then((registrationData) => {
             if (!registrationData) {
                 // If the combination doesn't exist, add a new entry in the Registration table
                 Registration.updateOne(
                     { "_id": ObjectId(user_id) },
-                    { $push: { time_spent: { scenario_id: ObjectId(scenarioId), time: time_spent } } }
+                    { $push: { time_spent: { scenario_id: ObjectId(scenarioId), time: time_spent } }, $set: { modified: Date.now() } }
                 ).then(() => {
                     res.status(200).json({
                         error: false,
@@ -616,14 +658,14 @@ app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
                     "_id": ObjectId(scenarioId),
                     "time_spent.user_id": ObjectId(user_id)
                 },
-                { $inc: { "time_spent.$.time": parseInt(time_spent) } },
+                { $inc: { "time_spent.$.time": parseInt(time_spent) }, $set: { modified: Date.now() } },
                 { new: true }
             ).then((scenarioDetailsData) => {
                 if (!scenarioDetailsData) {
                     // If the combination doesn't exist, add a new entry in the scenario_details table
                     scenario_details.updateOne(
                         { "_id": ObjectId(scenarioId) },
-                        { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } } }
+                        { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } }, $set: { modified: Date.now() } }
                     ).then(() => {
                         res.status(200).json({
                             error: false,
@@ -649,8 +691,6 @@ app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
         res.status(400).send(error);
     }
 });
-
-
 
 /************************ Get Users and Scenario details with time spent of KMS ********************** */
 // app.post('/getUsersDetailsWithTimespentOld', verifyToken,  async (req, res) => {
@@ -819,10 +859,10 @@ app.post('/getScenarioDetailsWithTimespent', verifyToken, async (req, res) => {
                     "scenario_details": {
                         "_id": 1,
                         "scenario": 1,
-                        "circle":1,
-                        "brief":1,
-                        "expDate":1,
-                        "liveDate":1,
+                        "circle": 1,
+                        "brief": 1,
+                        "expDate": 1,
+                        "liveDate": 1,
                         "actionId": 1,
                         "count": 1,
                         "time_spent": 1,
