@@ -96,7 +96,7 @@ app.post("/registration", upload, async (req, res) => {
 
     try {
 
-        let profile_image = req.file?.image ? req.file.image : ""
+        let profile_image = req.file.image ? req.file.image : ""
         let name = req.body.name ? req.body.name : ""
         let mobile_number = req.body.mobile_number ? req.body.mobile_number : ""
         let email = req.body.email ? req.body.email : ""
@@ -107,75 +107,45 @@ app.post("/registration", upload, async (req, res) => {
         let file = profile_image.fieldname + "-" + Date.now() + ".jpg"
         let bPassword = await bcryptPassword(password)
 
-        function validateEmail(email) {
-            var regex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
-            return regex.test(email);
+        let FindUser = await Registration.findOne({ mobile_number: mobile_number })
+        console.log(FindUser,"aaaaaaaaaaaaaaaaa")
+        if (FindUser) {
+            res.status(200).json({
+                error: false,
+                code: 200,
+                message: "Number all ready used, Please Try Another mobile number",
+                data: result
+            })
         }
+        else {
 
-        function validatePhoneNumber(mobile_number) {
-            var regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
-            return regex.test(mobile_number)
-        }
+            let saveData = {
 
-        if (validateEmail(email)) {
-            console.log("Valid email!");
+                profile_image: "http://localhost:2222/uploads/" + file,
+                name: name,
+                mobile_number: mobile_number,
+                email: email,
+                password: bPassword,
+                user_role: user_role,
+                admin_id: admin_id
 
-            if (validatePhoneNumber(mobile_number)) {
-                console.log("Valid phone number!");
+            }
+            let result = await Registration.create(saveData)
 
-                let FindUser = await Registration.findOne({ mobile_number: mobile_number })
-                if (FindUser) {
-                    res.status(400).json({
-                        error: false,
-                        code: 400,
-                        message: "Mobile Number exist, Please Try with another number !!!",
-                    })
-                }
-                else {
-
-                    let saveData = {
-
-                        profile_image: "http://localhost:2222/uploads/" + file,
-                        name: name,
-                        mobile_number: mobile_number,
-                        email: email,
-                        password: bPassword,
-                        user_role: user_role,
-                        admin_id: admin_id
-
-                    }
-                    let result = await Registration.create(saveData)
-
-                    if (result) {
-                        res.status(200).json({
-                            error: false,
-                            code: 200,
-                            message: "Registered Successfully",
-                            data: result
-                        })
-                    } else {
-                        res.status(404).json({
-                            error: true,
-                            code: 404,
-                            message: "Not Registered",
-                        })
-                    }
-                }
+            if (result) {
+                res.status(200).json({
+                    error: false,
+                    code: 200,
+                    message: "Registered Successfully",
+                    data: result
+                })
             } else {
-                console.log("Invalid phone number!");
-                res.status(400).json({
+                res.status(404).json({
                     error: true,
-                    code: 400,
-                    message: "Invalid phone number!",
+                    code: 404,
+                    message: "Not Registered",
                 })
             }
-        } else {
-            console.log("Invalid email!");
-            res.status(400).json({
-                error: true,
-                code: 400,
-                message: "Invalid email!",
-            });
         }
 
     } catch (error) {
