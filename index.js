@@ -120,7 +120,7 @@ app.post("/registration", upload, async (req, res) => {
 
             let saveData = {
 
-                profile_image: "https://kms-backend-new.vercel.app/uploads/" + file,
+                profile_image: "http://localhost:2222/uploads/" + file,
                 name: name,
                 mobile_number: mobile_number,
                 email: email,
