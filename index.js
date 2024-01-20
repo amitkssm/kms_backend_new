@@ -104,47 +104,78 @@ app.post("/registration", upload, async (req, res) => {
         let user_role = req.body.user_role ? req.body.user_role : ""
         let admin_id = req.body.admin_id ? req.body.admin_id : ""
 
-        let file = profile_image.fieldname + "-" + Date.now() + ".jpg"
+        let file = req.file.filename
         let bPassword = await bcryptPassword(password)
 
-        let FindUser = await Registration.findOne({ mobile_number: mobile_number })
-        
-        if (FindUser) {
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Number all ready used, Please Try Another mobile number",
-            })
+        function validateEmail(email) {
+            var regex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+            return regex.test(email);
         }
-        else {
 
-            let saveData = {
+        function validatePhoneNumber(mobile_number) {
+            var regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+            return regex.test(mobile_number)
+        }
 
-                profile_image: "http://localhost:2222/uploads/" + file,
-                name: name,
-                mobile_number: mobile_number,
-                email: email,
-                password: bPassword,
-                user_role: user_role,
-                admin_id: admin_id
+        if (validateEmail(email)) {
+            console.log("Valid email!");
 
-            }
-            let result = await Registration.create(saveData)
+            if (validatePhoneNumber(mobile_number)) {
+                console.log("Valid phone number!");
 
-            if (result) {
-                res.status(200).json({
-                    error: false,
-                    code: 200,
-                    message: "Registered Successfully",
-                    data: result
-                })
+                let FindUser = await Registration.findOne({ mobile_number: mobile_number })
+                if (FindUser) {
+                    res.status(400).json({
+                        error: false,
+                        code: 400,
+                        message: "Mobile Number exist, Please Try with another number !!!",
+                    })
+                }
+                else {
+
+                    let saveData = {
+
+                        profile_image: "http://localhost:2222/uploads/" + file,
+                        name: name,
+                        mobile_number: mobile_number,
+                        email: email,
+                        password: bPassword,
+                        user_role: user_role,
+                        admin_id: admin_id
+
+                    }
+                    let result = await Registration.create(saveData)
+
+                    if (result) {
+                        res.status(200).json({
+                            error: false,
+                            code: 200,
+                            message: "Registered Successfully",
+                            data: result
+                        })
+                    } else {
+                        res.status(404).json({
+                            error: true,
+                            code: 404,
+                            message: "Not Registered",
+                        })
+                    }
+                }
             } else {
-                res.status(404).json({
+                console.log("Invalid phone number!");
+                res.status(400).json({
                     error: true,
-                    code: 404,
-                    message: "Not Registered",
+                    code: 400,
+                    message: "Invalid phone number!",
                 })
             }
+        } else {
+            console.log("Invalid email!");
+            res.status(400).json({
+                error: true,
+                code: 400,
+                message: "Invalid email!",
+            });
         }
 
     } catch (error) {
@@ -551,7 +582,7 @@ app.post('/getAgentBasedOnAdminId', verifyToken, async (req, res) => {
 
 });
 
-/************************ Get All Ranking wise Scenerio Based on of KMS ******************* */
+/************************ Get All Ranking wise Scenerio of KMS ******************* */
 app.get('/getscenarioRankingWise', verifyToken, async (req, res) => {
     console.log("http://localhost:2222/getscenarioRankingWise")
 
@@ -587,6 +618,33 @@ app.get('/getscenarioRankingWise', verifyToken, async (req, res) => {
     }
 
 });
+
+
+/************************ Get most view Scenerio Details Id of KMS ******************* */
+app.get("/getMostViewSceneraioDetails", (req, res) => {
+    console.log("http://localhost:2222/getMostViewSceneraioDetails")
+
+    scenario_details.find({}, { count: 1, scenario: 1, actionId: 1, circle: 1 })
+        .sort({ count: -1 }) // Sort in descending order based on the count field
+        .then((data) => {
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Scenario Details Fetched Successfully",
+                data: data
+            });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).json({
+                error: true,
+                code: 500,
+                message: "Internal Server Error",
+                data: error.message
+            });
+        });
+});
+
 
 
 /************************ update User And Scenario For Time Spent ******************* */
@@ -762,7 +820,7 @@ app.post('/getUsersDetailsWithTimespent', verifyToken, async (req, res) => {
                         "admin_id": 1,
                         "time_spent": 1,
                         "is_deleted": 1
-                        // Add other fields you need from the registrations collection
+
                     }
                 }
             }
@@ -837,7 +895,7 @@ app.post('/getScenarioDetailsWithTimespent', verifyToken, async (req, res) => {
                         "time_spent": 1,
                         // "created": 1,
                         // "modified": 1,
-                        // Add other fields you need from the registrations collection
+
                     }
                 }
             }
