@@ -39,10 +39,10 @@ const upload = multer({
             cb(null, "uploads")
         },
         filename: function (req, file, cb) {
-            cb(null, file.fieldname + "-" + Date.now() + ".jpg")
+            cb(null, Date.now() + file.originalname)
         }
     })
-}).single("image");
+}).single("file");
 app.post("/profile", upload, (req, res) => {
     res.send("file upload")
 });
@@ -90,6 +90,19 @@ app.get('/protected', verifyToken, (req, res) => {
 
 //=========================================== KMS API START =====================================================//
 
+app.post("/uploadDocuments", upload, (req, res) => {
+
+    res.status(200).json({
+        error: false,
+        code: 200,
+        message: "File Upload Successfully",
+        data: req.file.filename
+    })
+    res.json({
+        name: req.file.filename
+    })
+})
+
 /************************ Registration API for Users in KMS ******************* */
 app.post("/registration", upload, async (req, res) => {
     console.log("http://localhost:2222/registration")
@@ -103,6 +116,7 @@ app.post("/registration", upload, async (req, res) => {
         let password = req.body.password ? req.body.password : ""
         let user_role = req.body.user_role ? req.body.user_role : ""
         let admin_id = req.body.admin_id ? req.body.admin_id : ""
+        let category = req.body.category ? req.body.category : ""
 
         let file = req.file.filename
         let bPassword = await bcryptPassword(password)
@@ -135,13 +149,15 @@ app.post("/registration", upload, async (req, res) => {
 
                     let saveData = {
 
-                        profile_image: "http://localhost:2222/uploads/" + file,
+                        // profile_image: "http://localhost:2222/uploads/" + file,
+                        profile_image: file,
                         name: name,
                         mobile_number: mobile_number,
                         email: email,
                         password: bPassword,
                         user_role: user_role,
-                        admin_id: admin_id
+                        admin_id: admin_id,
+                        category: category,
 
                     }
                     let result = await Registration.create(saveData)
@@ -264,7 +280,7 @@ app.post('/saveScenario', verifyToken, async (req, res) => {
 app.post("/saveQuestion", verifyToken, async (req, res) => {
     console.log("http://localhost:2222/saveQuestion")
 
-    console.log(req.body.data[0].options)
+    // console.log(req.body.data[0].options)
     let count = 0
     let data = req.body.data
     let savedQuestion
@@ -619,9 +635,8 @@ app.get('/getscenarioRankingWise', verifyToken, async (req, res) => {
 
 });
 
-
 /************************ Get most view Scenerio Details Id of KMS ******************* */
-app.get("/getMostViewSceneraioDetails", (req, res) => {
+app.get("/getMostViewSceneraioDetails", verifyToken, (req, res) => {
     console.log("http://localhost:2222/getMostViewSceneraioDetails")
 
     scenario_details.find({}, { count: 1, scenario: 1, actionId: 1, circle: 1 })
@@ -644,8 +659,6 @@ app.get("/getMostViewSceneraioDetails", (req, res) => {
             });
         });
 });
-
-
 
 /************************ update User And Scenario For Time Spent ******************* */
 app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
@@ -927,7 +940,37 @@ app.post('/getScenarioDetailsWithTimespent', verifyToken, async (req, res) => {
     }
 });
 
+/************************ Get Scenerio Details based on Category and AdminId of KMS ******************* */
+app.post("/getScenarioBasedOnCatnAdm", (req, res) => {
+    console.log("http://localhost:2222/getScenarioBasedOnCatnAdm")
 
+    let category = req.body.category ? req.body.category : ""
+    let admin_id = req.body.admin_id ? req.body.admin_id : ""
+    scenario_details.find({ admin_id: admin_id, category: category }).then((data) => {
+        res.status(201).json({
+            error: false,
+            code: 201,
+            message: "Scenario Details Fetched Successfully",
+            data: data,
+        });
+    }).catch((error) => {
+        console.error(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Internal Server Error",
+            data: error.message
+        });
+    });
+});
+
+
+app.get('/file/:path', (req, res) => {
+    fs.readFile("uploads/" + req.params.path, (err, data) => {
+        console.log(err)
+        res.end(data)
+    })
+})
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
 // app.post('/deleteSceine', async (req, res) => {
@@ -1005,7 +1048,6 @@ function sendResetPasswordEmail(userEmail, resetToken) {
         }
     });
 }
-
 
 //==================================== API for Forget password =====================================//
 

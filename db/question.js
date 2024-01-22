@@ -9,6 +9,7 @@ const registrationSchema = new mongoose.Schema({
     password: String,
     address: String,
     user_role: String,
+    category: String,
     admin_id: String,
     // time_spent: Number,
     time_spent: [
@@ -54,6 +55,7 @@ const scenarioSchema = new mongoose.Schema({
 
     scenario: String,
     circle: String,
+    category: String,
     liveDate: String,
     expDate: String,
     brief: String,
@@ -66,7 +68,7 @@ const scenarioSchema = new mongoose.Schema({
        } 
     ],
     count: { type: Number, default: 0 },
-    
+
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
 
