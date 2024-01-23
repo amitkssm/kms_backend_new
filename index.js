@@ -221,9 +221,9 @@ app.post("/login", upload, async (req, res) => {
         let password1 = req.body.password ? req.body.password : ""
         let user = await Registration.findOne({ email: email })
         if (user === null) {
-            res.status(404).json({
+            res.status(400).json({
                 error: true,
-                code: 404,
+                code: 400,
                 message: "User not found.",
             })
         }
@@ -297,6 +297,7 @@ app.post("/saveQuestion", verifyToken, async (req, res) => {
             let tables = data[i].tables ? data[i].tables : []
             let pre = data[i].pre ? data[i].pre : ""
             let scene = req.body.scene
+            
 
             let saveData = {
 
@@ -305,7 +306,9 @@ app.post("/saveQuestion", verifyToken, async (req, res) => {
                 options: options,
                 tables: tables,
                 scene: scene,
-                start: data[i].start ? data[i].start : 0
+                start: data[i].start ? data[i].start : 0,
+                files:data[i].files?data[i].files:[],
+                linked:data[i].linked?data[i].linked:{}
 
             }
 
@@ -422,7 +425,7 @@ app.get('/getQuestion', verifyToken, async (req, res) => {
 
 /************************ Get All Scenerio Categories Action Id of KMS ******************* */
 app.get('/getscenario', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getscenario")
+    
 
     try {
         const result = await scenario_details.find({});

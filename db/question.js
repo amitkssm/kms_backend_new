@@ -39,6 +39,8 @@ const questionSchema = new mongoose.Schema({
         ]
     },
     tables: [],
+    files:[],
+    linked:{},
     scene: String,
     newData: { default: 1, type: Number },
     start: { type: Number, default: 0 },
