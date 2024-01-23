@@ -1,7 +1,7 @@
 
 
-const express = require("express");
 const mongoose = require("mongoose");
+const express = require("express");
 const fs = require('fs')
 const jwt = require('jsonwebtoken');
 const multer = require("multer");
@@ -90,16 +90,22 @@ app.get('/protected', verifyToken, (req, res) => {
 
 //=========================================== KMS API START =====================================================//
 
+/************************ Upload Documents API for Query ******************* */
 app.post("/uploadDocuments", upload, (req, res) => {
 
     res.status(200).json({
         error: false,
         code: 200,
         message: "File Upload Successfully",
-        data: req.file.filename
+        file: req.file.filename
     })
-    res.json({
-        name: req.file.filename
+})
+
+/************************ Get Documents API for Query ******************* */
+app.get('/file/:path', (req, res) => {
+    fs.readFile("uploads/" + req.params.path, (err, data) => {
+        console.log(err)
+        res.end(data)
     })
 })
 
@@ -965,12 +971,6 @@ app.post("/getScenarioBasedOnCatnAdm", (req, res) => {
 });
 
 
-app.get('/file/:path', (req, res) => {
-    fs.readFile("uploads/" + req.params.path, (err, data) => {
-        console.log(err)
-        res.end(data)
-    })
-})
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
 // app.post('/deleteSceine', async (req, res) => {
