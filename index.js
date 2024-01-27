@@ -14,7 +14,7 @@ const cors = require("cors");
 
 require("./db/config");
 
-const { Question, scenario_details, Registration } = require("./db/question")
+const { Question, scenario_details, Registration, logs } = require("./db/question")
 
 
 const app = express();
@@ -974,6 +974,75 @@ app.post("/getScenarioBasedOnCatnAdm", (req, res) => {
 });
 
 
+/************************ Save Logs of KMS ******************* */
+app.post('/logs', async (req, res) => {
+    console.log("http://localhost:2222/logs")
+
+    let scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
+    let user_id = req.body.user_id ? req.body.user_id : ""
+    let log = req.body.log ? req.body.log : []
+
+    let saveData = {
+        scenario_id:scenario_id,
+        user_id:user_id,
+        log:log
+    }
+    const logsData = await new logs(saveData);
+    logsData.save().then((question) => {
+        res.status(201).json({
+            error: false,
+            code: 201,
+            message: "Logs save Successfully",
+            data: question
+        })
+        console.log('save');
+    }).catch((error) => {
+        res.status(400).json({
+            error: true,
+            code: 400,
+            message: "sonthing went worng",
+            data: error
+        })
+    })
+
+})
+
+/************************ update Logs of KMS ******************* */
+app.post("/updateLogs", async (req, res) => {
+    console.log("http://localhost:2222/updateLogs");
+
+    try {
+        const log_id = req.body.log_id;
+        const step_id = req.body.step_id;
+
+        if (!log_id || !step_id) {
+            return res.status(400).json({
+                error: true,
+                code: 400,
+                message: "log_id and step_id are required fields"
+            });
+        }
+
+        const result = await logs.updateOne(
+            { "_id": ObjectId(log_id) },
+            { "$push": { "log": step_id } }
+        );
+
+        res.status(201).json({
+            error: false,
+            code: 201,
+            message: "Update Log Successfully",
+            data: result
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Internal Server Error"
+        });
+    }
+});
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
 // app.post('/deleteSceine', async (req, res) => {

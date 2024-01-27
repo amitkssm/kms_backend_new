@@ -77,11 +77,23 @@ const scenarioSchema = new mongoose.Schema({
 });
 scenario_details = mongoose.model("scenario_details", scenarioSchema);
 
+const logsSchema = new mongoose.Schema({
+    scenario_id: String,
+    user_id: String,
+    log: [],
+    is_comleted: { type: Number, default: 0 },
+    created: { type: Date, default: Date.now },
+    modified: { type: Date, default: Date.now }
+
+});
+logs = mongoose.model("logs", logsSchema);
+
 
 module.exports = {
     
     Registration,
     Question,
     scenario_details,
+    logs,
 
 }
