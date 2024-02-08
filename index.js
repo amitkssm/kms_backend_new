@@ -159,7 +159,7 @@ app.post("/registration", upload, async (req, res) => {
                         profile_image: file,
                         name: name,
                         mobile_number: mobile_number,
-                        email: email,
+                        email: email.toLowerCase().trim(),
                         password: bPassword,
                         user_role: user_role,
                         admin_id: admin_id,
@@ -219,7 +219,7 @@ app.post("/login", upload, async (req, res) => {
     try {
         let email = req.body.email ? req.body.email : ""
         let password1 = req.body.password ? req.body.password : ""
-        let user = await Registration.findOne({ email: email })
+        let user = await Registration.findOne({ email: email.toLowerCase().trim() })
         if (user === null) {
             res.status(400).json({
                 error: true,
