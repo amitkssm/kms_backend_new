@@ -950,7 +950,7 @@ app.post('/getScenarioDetailsWithTimespent', verifyToken, async (req, res) => {
 });
 
 /************************ Get Scenerio Details based on Category and AdminId of KMS ******************* */
-app.post("/getScenarioBasedOnCatnAdm", (req, res) => {
+app.post("/getScenarioBasedOnCatnAdm", verifyToken,(req, res) => {
     console.log("http://localhost:2222/getScenarioBasedOnCatnAdm")
 
     let category = req.body.category ? req.body.category : ""
@@ -975,7 +975,7 @@ app.post("/getScenarioBasedOnCatnAdm", (req, res) => {
 
 
 /************************ Save Logs of KMS ******************* */
-app.post('/logs', async (req, res) => {
+app.post('/logs',verifyToken, async (req, res) => {
     console.log("http://localhost:2222/logs")
 
     let scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
@@ -1008,7 +1008,7 @@ app.post('/logs', async (req, res) => {
 })
 
 /************************ update Logs of KMS ******************* */
-app.post("/updateLogs", async (req, res) => {
+app.post("/updateLogs",verifyToken, async (req, res) => {
     console.log("http://localhost:2222/updateLogs");
 
     try {
