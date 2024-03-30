@@ -15,7 +15,9 @@ const registrationSchema = new mongoose.Schema({
     time_spent: [
         {
             scenario_id:ObjectId,
-            time:Number
+            scenario_name:String,
+            time:Number,
+            last_click_time:{ type: Date, default: Date.now }
         } 
     ],
     is_deleted: { type: Number, default: 0 },
@@ -70,7 +72,7 @@ const scenarioSchema = new mongoose.Schema({
        } 
     ],
     count: { type: Number, default: 0 },
-
+    last_click_time: { type: Date, default: Date.now },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
 
@@ -78,9 +80,10 @@ const scenarioSchema = new mongoose.Schema({
 scenario_details = mongoose.model("scenario_details", scenarioSchema);
 
 const logsSchema = new mongoose.Schema({
-    scenario_id: String,
-    user_id: String,
-    log: [],
+    scenario_id: ObjectId,
+    user_id: ObjectId,
+    log: [ObjectId],
+    time_spent : Number,
     is_comleted: { type: Number, default: 0 },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }

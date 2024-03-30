@@ -1,5 +1,4 @@
 
-
 const mongoose = require("mongoose");
 const express = require("express");
 const fs = require('fs')
@@ -8,13 +7,15 @@ const multer = require("multer");
 var bcrypt = require('bcryptjs');
 const ObjectId = require('mongoose').Types.ObjectId;
 const cors = require("cors");
+const controller = require('./api.contrroller')
+const handler= require('./api.handler')
 
 // var validator = require('gstin-validator');
 
 
 require("./db/config");
 
-const { Question, scenario_details, Registration, logs } = require("./db/question")
+const { Question, scenario_details, Registration, logs } = require("./db/schema")
 
 
 const app = express();
@@ -30,1030 +31,113 @@ app.listen((2222), () => {
     console.log("app is running on port 2222")
 })
 
-//====================================== Function For Upload Image ===============================================//
+//====================================== Function For handler.upload Image ===============================================//
 
-const upload = multer({
-
-    storage: multer.diskStorage({
-        destination: function (req, file, cb) {
-            cb(null, "uploads")
-        },
-        filename: function (req, file, cb) {
-            cb(null, Date.now() + file.originalname)
-        }
-    })
-}).single("file");
-app.post("/profile", upload, (req, res) => {
+app.post("/profile", handler.upload, (req, res) => {
     res.send("file upload")
 });
 
-//==================================== Function for Bcrypt and Decrypt Password =====================================//
 
-const bcryptPassword = async (password) => {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt)
-    console.log(hashedPassword)
-    return hashedPassword;
-}
-const decryptPassword = async (getpassword, userpassword) => {
-    const validPass = await bcrypt.compare(getpassword, userpassword)
-    return validPass;
-}
-
-//====================================== Function For JWT ===============================================//
-
-const secretKey = 'kms-ak-node'; // Replace with your own secret key
-
-// Middleware to check JWT token
-const verifyToken = (req, res, next) => {
-    const token = req.headers['authorization'];
-
-    if (!token) {
-        return res.status(401).json({ message: 'Unauthorized : Missing token' });
-    }
-
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: 'Forbidden : Invalid token' });
-        }
-
-        req.user = user;
-        next();
-    });
-};
-
-// Protected route using the verifyToken middleware
-app.get('/protected', verifyToken, (req, res) => {
-    res.json({ message: 'This is a protected route', user: req.user });
-});
-
+// Protected route using the handler.verifyToken middleware
+app.get('/protected', handler.verifyToken, controller.protected)
 
 //=========================================== KMS API START =====================================================//
 
-/************************ Upload Documents API for Query ******************* */
-app.post("/uploadDocuments", upload, (req, res) => {
-
-    res.status(200).json({
-        error: false,
-        code: 200,
-        message: "File Upload Successfully",
-        file: req.file.filename
-    })
-})
+/************************ upload Documents API for Query ******************* */
+app.post("/uploadDocuments", handler.upload, controller.uploadDocuments)
 
 /************************ Get Documents API for Query ******************* */
-app.get('/file/:path', (req, res) => {
-    fs.readFile("uploads/" + req.params.path, (err, data) => {
-        console.log(err)
-        res.end(data)
-    })
-})
+app.get('/file/:path', controller.file)
 
 /************************ Registration API for Users in KMS ******************* */
-app.post("/registration", upload, async (req, res) => {
-    console.log("http://localhost:2222/registration")
-
-    try {
-
-        let profile_image = req.file.image ? req.file.image : ""
-        let name = req.body.name ? req.body.name : ""
-        let mobile_number = req.body.mobile_number ? req.body.mobile_number : ""
-        let email = req.body.email ? req.body.email : ""
-        let password = req.body.password ? req.body.password : ""
-        let user_role = req.body.user_role ? req.body.user_role : ""
-        let admin_id = req.body.admin_id ? req.body.admin_id : ""
-        let category = req.body.category ? req.body.category : ""
-
-        let file = req.file.filename
-        let bPassword = await bcryptPassword(password)
-
-        function validateEmail(email) {
-            var regex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
-            return regex.test(email);
-        }
-
-        function validatePhoneNumber(mobile_number) {
-            var regex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
-            return regex.test(mobile_number)
-        }
-
-        if (validateEmail(email)) {
-            console.log("Valid email!");
-
-            if (validatePhoneNumber(mobile_number)) {
-                console.log("Valid phone number!");
-
-                let FindUser = await Registration.findOne({ mobile_number: mobile_number })
-                if (FindUser) {
-                    res.status(400).json({
-                        error: false,
-                        code: 400,
-                        message: "Mobile Number exist, Please Try with another number !!!",
-                    })
-                }
-                else {
-
-                    let saveData = {
-
-                        // profile_image: "http://localhost:2222/uploads/" + file,
-                        profile_image: file,
-                        name: name,
-                        mobile_number: mobile_number,
-                        email: email.toLowerCase().trim(),
-                        password: bPassword,
-                        user_role: user_role,
-                        admin_id: admin_id,
-                        category: category,
-
-                    }
-                    let result = await Registration.create(saveData)
-
-                    if (result) {
-                        res.status(200).json({
-                            error: false,
-                            code: 200,
-                            message: "Registered Successfully",
-                            data: result
-                        })
-                    } else {
-                        res.status(404).json({
-                            error: true,
-                            code: 404,
-                            message: "Not Registered",
-                        })
-                    }
-                }
-            } else {
-                console.log("Invalid phone number!");
-                res.status(400).json({
-                    error: true,
-                    code: 400,
-                    message: "Invalid phone number!",
-                })
-            }
-        } else {
-            console.log("Invalid email!");
-            res.status(400).json({
-                error: true,
-                code: 400,
-                message: "Invalid email!",
-            });
-        }
-
-    } catch (error) {
-        console.log(error)
-        res.status(400).json({
-            error: true,
-            code: 400,
-            message: "sonthing went worng",
-            data: error.message
-        })
-    }
-
-});
+app.post("/registration", handler.upload, controller.Registration)
 
 /************************ Login API for Users in KMS ******************* */
-app.post("/login", upload, async (req, res) => {
-    console.log("http://localhost:2222/login")
+app.post("/login", handler.upload, controller.login)
 
-    try {
-        let email = req.body.email ? req.body.email : ""
-        let password1 = req.body.password ? req.body.password : ""
-        let user = await Registration.findOne({ email: email.toLowerCase().trim() })
-        if (user === null) {
-            res.status(400).json({
-                error: true,
-                code: 400,
-                message: "User not found.",
-            })
-        }
-        else {
-            const token = jwt.sign({ email }, secretKey);
-            const isMatch = await decryptPassword(password1, user.password)
-            if (isMatch) {
-                res.status(201).json({
-                    error: false,
-                    code: 201,
-                    message: "User Logged In",
-                    result: user,
-                    token: token
-                })
-            }
-            else {
-                return res.status(400).send({
-                    message: "Wrong Password"
-                });
-            }
-        }
-
-    } catch (error) {
-        console.log(error)
-        res.status(400).json({
-            error: true,
-            code: 400,
-            message: "sonthing went worng",
-            data: error
-        })
-    }
-
-});
-
-/************************ Save category of KMS ******************* */
-app.post('/saveScenario', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/saveScenario")
-
-    const question = await new scenario_details(req.body);
-    question.save().then((question) => {
-        res.status(201).json({
-            error: false,
-            code: 201,
-            message: "Scenario save Successfully",
-            data: question
-        })
-        console.log('save');
-    }).catch((error) => {
-        res.status(400).json({
-            error: true,
-            code: 400,
-            message: "sonthing went worng",
-            data: error
-        })
-    })
-
-})
+/************************ Save Scenario of KMS ******************* */
+app.post('/saveScenario', handler.verifyToken, controller.saveScenario)
 
 /************************ Save Question and Options of KMS ******************* */
-app.post("/saveQuestion", verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/saveQuestion")
-
-    // console.log(req.body.data[0].options)
-    let count = 0
-    let data = req.body.data
-    let savedQuestion
-    try {
-        for (let i = 0; i < data.length; i++) {
-            let question = data[i].question ? data[i].question : ""
-            let options = data[i].options ? data[i].options : []
-            let tables = data[i].tables ? data[i].tables : []
-            let pre = data[i].pre ? data[i].pre : ""
-            let scene = req.body.scene
-            
-
-            let saveData = {
-
-                question: question,
-                pre: pre,
-                options: options,
-                tables: tables,
-                scene: scene,
-                start: data[i].start ? data[i].start : 0,
-                files:data[i].files?data[i].files:[],
-                linked:data[i].linked?data[i].linked:{}
-
-            }
-
-            Question.create(saveData).then((result) => {
-                console.log(result)
-                if (result.start) {
-                    savedQuestion = result
-                }
-
-                if (result) {
-                    count++
-                    if (count == data.length) {
-                        scenario_details.updateOne({ _id: scene }, { $set: { actionId: savedQuestion._id } }).then((data) => {
-                            res.status(200).json({
-                                error: false,
-                                code: 200,
-                                message: "Save Successfully",
-                                data: savedQuestion
-                            })
-                        })
-                    }
-
-                } else {
-                    res.status(404).json({
-                        error: true,
-                        code: 404,
-                        message: "",
-                    })
-                }
-            })
-        }
-
-    } catch (error) {
-        console.log(error)
-        res.status(400).json({
-            error: true,
-            code: 400,
-            message: "sonthing went worng",
-            data: error
-        })
-    }
-
-});
+app.post("/saveQuestion", handler.verifyToken, controller.saveQuestion)
 
 /************************ Get Question By Next and Pre Action Id Id of KMS ******************* */
-app.post('/getQuestionById', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getQuestionById")
-
-    try {
-        const actionId = req.body.actionId ? req.body.actionId : null
-        const question = await Question.find({ pre: actionId });
-        console.log('find');
-        if (question) {
-            console.log(question.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Question Fetched Successfully",
-                data: question
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(error);
-    }
-
-});
+app.post('/getQuestionById', handler.verifyToken, controller.getQuestionById)
 
 /************************ Get Question by Scenerio Action Id of KMS ******************* */
-app.post('/getQuestionByScenerio', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getQuestionByScenerio")
-
-    try {
-        const actionId = req.body.actionId ? req.body.actionId : null
-        const question = await Question.find({ _id: ObjectId(actionId) });
-
-        if (question) {
-            console.log(question.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Question Fetched Successfully",
-                data: question
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(error);
-    }
-
-});
+app.post('/getQuestionByScenerio', handler.verifyToken, controller.getQuestionByScenerio)
 
 /************************ Get All Questions and Options of KMS ******************* */
-app.get('/getQuestion', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getQuestion")
-
-    try {
-        const result = await Question.find({}, { created_date: 0, __v: 0 });
-        if (result) {
-            console.log(result.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Question Fetched Successfully",
-                data: result
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(err);
-    }
-
-});
+app.get('/getQuestion', handler.verifyToken, controller.getQuestion)
 
 /************************ Get All Scenerio Categories Action Id of KMS ******************* */
-app.get('/getscenario', verifyToken, async (req, res) => {
-    
+app.get('/getscenario', handler.verifyToken, controller.getscenario)
 
-    try {
-        const result = await scenario_details.find({});
-        if (result) {
-            console.log(result.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenario Fetched Successfully",
-                data: result
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(err);
-    }
-
-});
+/************************ Get All Expired Scenerio Categories Action Id of KMS ******************* */
+app.get('/getExpiredScenario',  controller.getExpiredScenario)
 
 /************************ Get Items of Scenerio Action Id of KMS ********************** */
-app.post('/getItemsScenerio', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getItemsScenerio")
-
-    const scene = req.body.scene ? req.body.scene : ""
-    try {
-        const result = await Question.find({ scene: scene });
-        if (result) {
-            console.log(result.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenerio Items Fetched Successfully",
-                data: result
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(err);
-    }
-
-});
+app.post('/getItemsScenerio', handler.verifyToken, controller.getItemsScenerio)
 
 /************************ Edit Questions and Options of KMS ******************* */
-app.post('/updateQuestion', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/updateQuestion")
-
-    try {
-        let data = req.body.data ? req.body.data : []
-        let result
-
-        for (i = 0; i < data.length; i++) {
-            let id = data[i]._id
-            delete data[i]._id
-            result = await Question.updateOne({ _id: ObjectId(id) }, { $set: data[i] }, { new: true });
-        }
-
-        if (result) {
-            console.log(result);
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Update Successfully",
-                data: []
-            });
-        }
-    }
-    catch (error) {
-        res.status(400).send(error);
-    }
-
-})
+app.post('/updateQuestion', handler.verifyToken, controller.updateQuestion)
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
-app.post('/getscenarioDetails', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getscenarioDetails")
-
-    const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
-
-    try {
-        const result = await scenario_details.find({ _id: ObjectId(scenarioId) });
-        let count = await scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { "$inc": { "count": 1 } })
-        if (result) {
-            console.log(result.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenerio Details Fetched Successfully",
-                data: result
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(error);
-    }
-
-});
+app.post('/getscenarioDetails', handler.verifyToken, controller.getscenarioDetails)
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
-app.post("/sceneraioDetails", verifyToken, (req, res) => {
-    console.log("http://localhost:2222/sceneraioDetails")
-
-    scenario_details.findOne({ _id: req.body.id }).then((data) => {
-        res.status(201).json({
-            error: false,
-            code: 201,
-            message: "Scenerio Details Fetched Successfully",
-            data: data
-        })
-    })
-
-})
+app.post("/sceneraioDetails", handler.verifyToken, controller.sceneraioDetails)
 
 /************************ Increase Count by Scenario Id of KMS ******************* */
-app.post("/updateSceneraioCount", verifyToken, (req, res) => {
-    console.log("http://localhost:2222/updateSceneraioCount")
-
-    try {
-        const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
-        scenario_details.updateOne({ "_id": ObjectId(scenarioId) }, { "$inc": { "count": 1 } }).then((data) => {
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Update Sceneraio Count Successfully",
-                data: data
-            })
-        })
-
-    } catch (error) {
-        res.status(400).send(error);
-    }
-
-})
+app.post("/updateSceneraioCount", handler.verifyToken, controller.updateSceneraioCount)
 
 /************************ Get Users based on user role of KMS ********************** */
-app.post('/getUsersBasedOnUserRole', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getUsersBasedOnUserRole")
-
-    const userRole = req.body.user_role ? req.body.user_role : ""
-    try {
-        const result = await Registration.find({ user_role: userRole });
-        if (result) {
-            console.log(result.length);
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Update Successfully",
-                data: result,
-                count: result.length
-            });
-        }
-    }
-    catch (error) {
-        res.status(400).send(err);
-    }
-
-});
+app.post('/getUsersBasedOnUserRole', handler.verifyToken, controller.getUsersBasedOnUserRole)
 
 /************************ Get Users based on Admin Id of KMS ********************** */
-app.post('/getAgentBasedOnAdminId', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getAgentBasedOnAdminId")
-
-    const AdminId = req.body.admin_id ? req.body.admin_id : ""
-    try {
-        const result = await Registration.find({ admin_id: AdminId });
-        if (result) {
-            console.log(result.length);
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Successfully",
-                data: result,
-                count: result.length
-            });
-        }
-    }
-    catch (error) {
-        res.status(400).send(err);
-    }
-
-});
+app.post('/getAgentBasedOnAdminId', handler.verifyToken, controller.getAgentBasedOnAdminId)
 
 /************************ Get All Ranking wise Scenerio of KMS ******************* */
-app.get('/getscenarioRankingWise', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getscenarioRankingWise")
-
-    try {
-        const result = await scenario_details.find({});
-        let newArray = result.map(function (item) {
-            return {
-                scenario: item.scenario,
-                circle: item.circle,
-                liveDate: item.liveDate,
-                expDate: item.expDate,
-                brief: item.brief,
-                actionId: item.actionId,
-                count: item.count,
-                // newProperty: 'x'
-            }
-        }).sort(function (x, z) {
-            return z.count - x.count;
-        });
-
-        if (newArray) {
-            console.log(result.length);
-            res.status(201).json({
-                error: true,
-                code: 201,
-                message: "Scenerio Details Fetched Successfully",
-                data: newArray
-            })
-        }
-    }
-    catch (error) {
-        res.status(400).send(err);
-    }
-
-});
+app.get('/getscenarioRankingWise', handler.verifyToken,  controller.getscenarioRankingWise)
 
 /************************ Get most view Scenerio Details Id of KMS ******************* */
-app.get("/getMostViewSceneraioDetails", verifyToken, (req, res) => {
-    console.log("http://localhost:2222/getMostViewSceneraioDetails")
-
-    scenario_details.find({}, { count: 1, scenario: 1, actionId: 1, circle: 1 })
-        .sort({ count: -1 }) // Sort in descending order based on the count field
-        .then((data) => {
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenario Details Fetched Successfully",
-                data: data
-            });
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).json({
-                error: true,
-                code: 500,
-                message: "Internal Server Error",
-                data: error.message
-            });
-        });
-});
+app.get("/getMostViewSceneraioDetails", controller.getMostViewSceneraioDetails)
 
 /************************ update User And Scenario For Time Spent ******************* */
-app.post("/updateUserAndScenarioForTimeSpent", verifyToken, (req, res) => {
-    console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
-
-    try {
-        const scenarioId = req.body.scenario_id ? req.body.scenario_id : "";
-        const user_id = req.body.user_id ? req.body.user_id : "";
-        const time_spent = req.body.time_spent ? parseInt(req.body.time_spent) : 0; // Convert time_spent to integer
-        // Update Registration table
-        Registration.findOneAndUpdate(
-            {
-                "_id": ObjectId(user_id),
-                "time_spent.scenario_id": ObjectId(scenarioId)
-            },
-            { $inc: { "time_spent.$.time": time_spent }, $set: { modified: Date.now() } },
-            { new: true }
-        ).then((registrationData) => {
-            if (!registrationData) {
-                // If the combination doesn't exist, add a new entry in the Registration table
-                Registration.updateOne(
-                    { "_id": ObjectId(user_id) },
-                    { $push: { time_spent: { scenario_id: ObjectId(scenarioId), time: time_spent } }, $set: { modified: Date.now() } }
-                ).then(() => {
-                    res.status(200).json({
-                        error: false,
-                        code: 200,
-                        message: "Time Updated Successfully",
-                        data: []
-                    });
-                });
-            }
-
-            // Update scenario_details table
-            scenario_details.findOneAndUpdate(
-                {
-                    "_id": ObjectId(scenarioId),
-                    "time_spent.user_id": ObjectId(user_id)
-                },
-                { $inc: { "time_spent.$.time": parseInt(time_spent) }, $set: { modified: Date.now() } },
-                { new: true }
-            ).then((scenarioDetailsData) => {
-                if (!scenarioDetailsData) {
-                    // If the combination doesn't exist, add a new entry in the scenario_details table
-                    scenario_details.updateOne(
-                        { "_id": ObjectId(scenarioId) },
-                        { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } }, $set: { modified: Date.now() } }
-                    ).then(() => {
-                        res.status(200).json({
-                            error: false,
-                            code: 200,
-                            message: "Time Updated Successfully",
-                            data: []
-                        });
-                    });
-                } else {
-                    // If the combination exists, update the time in the existing entry in the scenario_details table
-                    res.status(200).json({
-                        error: false,
-                        code: 200,
-                        message: "Time Updated Successfully",
-                        data: []
-                    });
-                }
-            });
-        });
-
-    } catch (error) {
-        console.log("error::::", error)
-        res.status(400).send(error);
-    }
-});
+app.post("/updateUserAndScenarioForTimeSpent", controller.updateUserAndScenarioForTimeSpent)
 
 /************************ Get Users and Scenario details with time spent of KMS ********************** */
-// app.post('/getUsersDetailsWithTimespentOld', verifyToken,  async (req, res) => {
-//     console.log("http://localhost:2222/getUsersDetailsWithTimespent")
-
-//     const scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
-//     const user_id = req.body.user_id ? req.body.user_id : ""
-//     try {
-//         const result = await scenario_details.aggregate([
-//             {
-//                 "$match": { "_id": ObjectId(scenario_id) }
-//             },
-//             {
-//                 "$unwind": "$time_spent"
-//             },
-//             {
-//                 "$lookup": {
-//                     "from": "registrations",
-//                     "let": { "userId": "$time_spent.user_id" },
-//                     "pipeline": [
-//                         {
-//                             "$match": {
-//                                 "$expr": {
-//                                     "$eq": ["$_id", "$$userId"],
-//                                 },
-//                             },
-//                         },
-//                     ],
-//                     "as": "user_details"
-//                 }
-//             },
-//             // {
-//             //     "$group": {
-//             //         "_id": "$_id",
-//             //         "scenario": { "$first": "$scenario" },
-//             //         "actionId": { "$first": "$actionId" },
-//             //         "created": { "$first": "$created" },
-//             //         "modified": { "$first": "$modified" },
-//             //         "__v": { "$first": "$__v" },
-//             //         "count": { "$first": "$count" },
-//             //         "time_spent": { "$push": "$time_spent" },
-//             //         "user_details": { "$first": "$user_details" }
-//             //     }
-//             // }
-//         ]);
-//         if (result) {
-//             console.log(result.length);
-//             res.status(200).json({
-//                 error: false,
-//                 code: 200,
-//                 message: "Successfully",
-//                 data: result,
-//                 count: result.length
-//             });
-//         }
-//     }
-//     catch (error) {
-//         console.log(error)
-//         res.status(400).send(error);
-//     }
-
-// });
+// app.post('/getUsersDetailsWithTimespentOld', handler.verifyToken,  controller.getUsersDetailsWithTimespentOld)
 
 /************************ Get Users details with time spent of KMS ********************** */
-app.post('/getUsersDetailsWithTimespent', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getUsersDetailsWithTimespent");
-
-    const scenario_id = req.body.scenario_id ? req.body.scenario_id : "";
-    const user_id = req.body.user_id ? req.body.user_id : "";
-
-    try {
-        const result = await scenario_details.aggregate([
-            {
-                "$match": { "_id": ObjectId(scenario_id) }
-            },
-            {
-                "$lookup": {
-                    "from": "registrations",
-                    "localField": "time_spent.user_id",
-                    "foreignField": "_id",
-                    "as": "user_details"
-                }
-            },
-            {
-                "$project": {
-                    "scenario": 1,
-                    "actionId": 1,
-                    "created": 1,
-                    "modified": 1,
-                    "__v": 1,
-                    "count": 1,
-                    "time_spent": 1,
-                    "user_details": {
-                        "_id": 1,
-                        "profile_image": 1,
-                        "name": 1,
-                        "mobile_number": 1,
-                        "email": 1,
-                        "user_role": 1,
-                        "admin_id": 1,
-                        "time_spent": 1,
-                        "is_deleted": 1
-
-                    }
-                }
-            }
-        ]);
-
-        if (result.length > 0) {
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Successfully",
-                data: result[0], // Assuming you want a single scenario's details
-            });
-        } else {
-            res.status(404).json({
-                error: true,
-                code: 404,
-                message: "Scenario not found",
-                data: [],
-            });
-        }
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Internal Server Error",
-            data: [],
-        });
-    }
-});
+app.post('/getUsersDetailsWithTimespent', handler.verifyToken, controller.getUsersDetailsWithTimespent)
 
 /************************ Get scenario details with time spent of KMS ********************** */
-app.post('/getScenarioDetailsWithTimespent', verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/getScenarioDetailsWithTimespent");
-
-    const scenario_id = req.body.scenario_id ? req.body.scenario_id : "";
-    const user_id = req.body.user_id ? req.body.user_id : "";
-
-    try {
-        const result = await Registration.aggregate([
-            {
-                "$match": { "_id": ObjectId(user_id) }
-            },
-            {
-                "$lookup": {
-                    "from": "scenario_details",
-                    "localField": "time_spent.scenario_id",
-                    "foreignField": "_id",
-                    "as": "scenario_details"
-                }
-            },
-            {
-                "$project": {
-                    "_id": 1,
-                    "profile_image": 1,
-                    "name": 1,
-                    "mobile_number": 1,
-                    "email": 1,
-                    "user_role": 1,
-                    "admin_id": 1,
-                    "is_deleted": 1,
-                    "time_spent": 1,
-                    "scenario_details": {
-                        "_id": 1,
-                        "scenario": 1,
-                        "circle": 1,
-                        "brief": 1,
-                        "expDate": 1,
-                        "liveDate": 1,
-                        "actionId": 1,
-                        "count": 1,
-                        "time_spent": 1,
-                        // "created": 1,
-                        // "modified": 1,
-
-                    }
-                }
-            }
-        ]);
-
-        if (result.length > 0) {
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Successfully",
-                data: result[0], // Assuming you want a single scenario's details
-            });
-        } else {
-            res.status(404).json({
-                error: true,
-                code: 404,
-                message: "Scenario not found",
-                data: [],
-            });
-        }
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Internal Server Error",
-            data: [],
-        });
-    }
-});
+app.post('/getScenarioDetailsWithTimespent', handler.verifyToken, controller.getScenarioDetailsWithTimespent)
 
 /************************ Get Scenerio Details based on Category and AdminId of KMS ******************* */
-app.post("/getScenarioBasedOnCatnAdm", verifyToken,(req, res) => {
-    console.log("http://localhost:2222/getScenarioBasedOnCatnAdm")
-
-    let category = req.body.category ? req.body.category : ""
-    let admin_id = req.body.admin_id ? req.body.admin_id : ""
-    scenario_details.find({ admin_id: admin_id, category: category }).then((data) => {
-        res.status(201).json({
-            error: false,
-            code: 201,
-            message: "Scenario Details Fetched Successfully",
-            data: data,
-        });
-    }).catch((error) => {
-        console.error(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Internal Server Error",
-            data: error.message
-        });
-    });
-});
+app.post("/getScenarioBasedOnCatnAdm", handler.verifyToken,controller.getScenarioBasedOnCatnAdm)
 
 
 /************************ Save Logs of KMS ******************* */
-app.post('/logs',verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/logs")
-
-    let scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
-    let user_id = req.body.user_id ? req.body.user_id : ""
-    let log = req.body.log ? req.body.log : []
-
-    let saveData = {
-        scenario_id:scenario_id,
-        user_id:user_id,
-        log:log
-    }
-    const logsData = await new logs(saveData);
-    logsData.save().then((question) => {
-        res.status(201).json({
-            error: false,
-            code: 201,
-            message: "Logs save Successfully",
-            data: question
-        })
-        console.log('save');
-    }).catch((error) => {
-        res.status(400).json({
-            error: true,
-            code: 400,
-            message: "sonthing went worng",
-            data: error
-        })
-    })
-
-})
+app.post('/logs',handler.verifyToken,controller.logs)
 
 /************************ update Logs of KMS ******************* */
-app.post("/updateLogs",verifyToken, async (req, res) => {
-    console.log("http://localhost:2222/updateLogs");
+app.post("/updateLogs",handler.verifyToken, controller.updateLogs)
 
-    try {
-        const log_id = req.body.log_id;
-        const step_id = req.body.step_id;
+/************************ update Logs of KMS ******************* */
+app.post("/getAgentDetailsBasedOnAgentId", controller.getAgentDetailsBasedOnAgentId)
 
-        if (!log_id || !step_id) {
-            return res.status(400).json({
-                error: true,
-                code: 400,
-                message: "log_id and step_id are required fields"
-            });
-        }
+/************************ update Logs of KMS ******************* */
+app.post("/getAgentDetailsOfAdmin", controller.getAgentDetailsOfAdmin)
 
-        const result = await logs.updateOne(
-            { "_id": ObjectId(log_id) },
-            { "$push": { "log": step_id } }
-        );
+/************************ update Logs of KMS ******************* */
+app.post("/getAgentLogsDetails", controller.getAgentLogsDetails)
 
-        res.status(201).json({
-            error: false,
-            code: 201,
-            message: "Update Log Successfully",
-            data: result
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Internal Server Error"
-        });
-    }
-});
+app.post("/getSoftwareNames", controller.getSoftwareNames)
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
-// app.post('/deleteSceine', async (req, res) => {
-//          console.log("http://localhost:2222/deleteSceine")
-
-//     let id = req.body.id
-//     // const deleteData = await Question.deleteMany({scene:id})
-//     if (deleteData) {
-//         res.status(201).send(deleteData);
-//     }
-// })
+// app.post('/deleteSceine', controller.deleteSceine)
 
 /////////////================= Start Forget Password throw Email Section =======================/////////////
 
