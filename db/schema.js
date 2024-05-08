@@ -50,7 +50,9 @@ const questionSchema = new mongoose.Schema({
     created_date: {
         type: Date,
         default: Date.now
-    }
+    },
+
+    is_final:{ type: Number, default: 0 },
 
 });
 Question = mongoose.model("Questions", questionSchema);
@@ -72,6 +74,7 @@ const scenarioSchema = new mongoose.Schema({
        } 
     ],
     count: { type: Number, default: 0 },
+    type:String,
     last_click_time: { type: Date, default: Date.now },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
