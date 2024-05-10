@@ -46,7 +46,7 @@ exports.login = async (req, res) => {
         if (user === null) {
             res.status(400).json({
                 error: true,
-                code: 400,
+                code: 200,
                 message: "User not found.",
             })
         }
@@ -657,96 +657,206 @@ exports.getMostViewSceneraioDetails = (req, res) => {
 };
 
 /************************ update User And Scenario For Time Spent ********************** */
-exports.updateUserAndScenarioForTimeSpent =async (req, res) => {
+// exports.updateUserAndScenarioForTimeSpent =async (req, res) => {
+//     console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
+
+//     try {
+//         const scenarioId = req.body.scenario_id ? req.body.scenario_id : "";
+//         const user_id = req.body.user_id ? req.body.user_id : "";
+//         const time_spent = req.body.time_spent ? parseInt(req.body.time_spent) : 0; // Convert time_spent to integer
+//         // Update Registration table
+//         let scenarioName = await scenario_details.findOne({_id:ObjectId(scenarioId)},{scenario:1,_id:0})
+//         console.log(scenarioName.scenario,"xxxxxxxxxxxxxxxxxx")
+//         Registration.findOneAndUpdate(
+//             {
+//                 "_id": ObjectId(user_id),
+//                 "time_spent.scenario_id": ObjectId(scenarioId)
+//             },
+//             {
+//                 $inc: { "time_spent.$.time": time_spent },
+//                 $set: {
+//                     "time_spent.$.last_click_time": Date.now(),
+//                     "time_spent.$.scenario_name": scenarioName.scenario,
+//                     modified: Date.now()
+//                 }
+//             },
+//             { new: true }
+//         ).then((registrationData) => {
+//             console.log("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
+
+//             if (!registrationData) {
+//             console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMm")
+
+//                 // If the combination doesn't exist, add a new entry in the Registration table
+//                 Registration.updateOne(
+//                     { "_id": ObjectId(user_id) },
+//                     {
+//                         $push: {
+//                             time_spent: {
+//                                 scenario_id: ObjectId(scenarioId),
+//                                 scenario_name: scenarioName.scenario,
+//                                 time: time_spent,
+//                                 last_click_time: Date.now(),
+                                
+//                             }
+//                         },
+//                         $set: { modified: Date.now() }
+//                     }
+//                 )
+//                 // .then(() => {
+//                 //     res.status(200).json({
+//                 //         error: false,
+//                 //         code: 200,
+//                 //         message: "Time Updated Successfully",
+//                 //         data: []
+//                 //     });
+//                 // });
+//             }
+
+//             // Update scenario_details table
+//             console.log("BBBBBBBBBBBBBBBBBBBBBBBCBBBB")
+//             scenario_details.findOneAndUpdate(
+//                 {
+//                     "_id": ObjectId(scenarioId),
+//                     "time_spent.user_id": ObjectId(user_id)
+//                 },
+//                 { $inc: { "time_spent.$.time": parseInt(time_spent) }, $set: { modified: Date.now() } },
+//                 { new: true }
+//             ).then((scenarioDetailsData) => {
+//             console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
+                
+//                 if (!scenarioDetailsData) {
+//                     // If the combination doesn't exist, add a new entry in the scenario_details table
+//                     scenario_details.updateOne(
+//                         { "_id": ObjectId(scenarioId) },
+//                         { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } }, $set: { modified: Date.now() } }
+//                     ).then(() => {
+//             console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+
+//                         res.status(200).json({
+//                             error: false,
+//                             code: 200,
+//                             message: "Time Updated Successfully",
+//                             data: []
+//                         });
+//                     });
+//                 } else {
+//                     // If the combination exists, update the time in the existing entry in the scenario_details table
+//                     res.status(200).json({
+//                         error: false,
+//                         code: 200,
+//                         message: "Time Updated Successfully",
+//                         data: []
+//                     });
+//                 }
+//             });
+//         });
+
+//     } catch (error) {
+//         console.log("error::::", error)
+//         res.status(400).send(error);
+//     }
+// };
+
+exports.updateUserAndScenarioForTimeSpent = async (req, res) => {
     console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
 
     try {
-        const scenarioId = req.body.scenario_id ? req.body.scenario_id : "";
-        const user_id = req.body.user_id ? req.body.user_id : "";
-        const time_spent = req.body.time_spent ? parseInt(req.body.time_spent) : 0; // Convert time_spent to integer
-        // Update Registration table
-        let scenarioName = await scenario_details.findOne({_id:ObjectId(scenarioId)},{scenario:1,_id:0})
-        console.log(scenarioName.scenario,"xxxxxxxxxxxxxxxxxx")
-        Registration.findOneAndUpdate(
+        const scenarioId = req.body.scenario_id || "";
+        const userId = req.body.user_id || "";
+        const timeSpent = parseInt(req.body.time_spent) || 0;
+
+        if (!scenarioId || !userId) {
+            throw new Error('Scenario ID and User ID must be provided');
+        }
+
+        const scenarioDetails = await scenario_details.findOne(
+            { _id: ObjectId(scenarioId) }, 
+            { scenario: 1, _id: 0 }
+        );
+
+        if (!scenarioDetails) {
+            throw new Error('Scenario not found');
+        }
+
+        const registrationUpdate = await Registration.findOneAndUpdate(
             {
-                "_id": ObjectId(user_id),
-                "time_spent.scenario_id": ObjectId(scenarioId)
+                _id: ObjectId(userId),
+                'time_spent.scenario_id': ObjectId(scenarioId)
             },
             {
-                $inc: { "time_spent.$.time": time_spent },
+                $inc: { 'time_spent.$.time': timeSpent },
                 $set: {
-                    "time_spent.$.last_click_time": Date.now(),
-                    "time_spent.$.scenario_name": scenarioName.scenario,
+                    'time_spent.$.last_click_time': Date.now(),
+                    'time_spent.$.scenario_name': scenarioDetails.scenario,
                     modified: Date.now()
                 }
             },
             { new: true }
-        ).then((registrationData) => {
-            if (!registrationData) {
-                // If the combination doesn't exist, add a new entry in the Registration table
-                Registration.updateOne(
-                    { "_id": ObjectId(user_id) },
-                    {
-                        $push: {
-                            time_spent: {
-                                scenario_id: ObjectId(scenarioId),
-                                scenario_name: scenarioName.scenario,
-                                time: time_spent,
-                                last_click_time: Date.now(),
-                                
-                            }
-                        },
-                        $set: { modified: Date.now() }
-                    }
-                ).then(() => {
-                    res.status(200).json({
-                        error: false,
-                        code: 200,
-                        message: "Time Updated Successfully",
-                        data: []
-                    });
-                });
-            }
+        );
 
-            // Update scenario_details table
-            scenario_details.findOneAndUpdate(
+        if (!registrationUpdate) {
+            await Registration.updateOne(
+                { _id: ObjectId(userId) },
                 {
-                    "_id": ObjectId(scenarioId),
-                    "time_spent.user_id": ObjectId(user_id)
-                },
-                { $inc: { "time_spent.$.time": parseInt(time_spent) }, $set: { modified: Date.now() } },
-                { new: true }
-            ).then((scenarioDetailsData) => {
-                if (!scenarioDetailsData) {
-                    // If the combination doesn't exist, add a new entry in the scenario_details table
-                    scenario_details.updateOne(
-                        { "_id": ObjectId(scenarioId) },
-                        { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } }, $set: { modified: Date.now() } }
-                    ).then(() => {
-                        res.status(200).json({
-                            error: false,
-                            code: 200,
-                            message: "Time Updated Successfully",
-                            data: []
-                        });
-                    });
-                } else {
-                    // If the combination exists, update the time in the existing entry in the scenario_details table
-                    res.status(200).json({
-                        error: false,
-                        code: 200,
-                        message: "Time Updated Successfully",
-                        data: []
-                    });
+                    $push: {
+                        time_spent: {
+                            scenario_id: ObjectId(scenarioId),
+                            scenario_name: scenarioDetails.scenario,
+                            time: timeSpent,
+                            last_click_time: Date.now()
+                        }
+                    },
+                    $set: { modified: Date.now() }
                 }
-            });
+            );
+        }
+
+        const scenarioUpdate = await scenario_details.findOneAndUpdate(
+            {
+                _id: ObjectId(scenarioId),
+                'time_spent.user_id': ObjectId(userId)
+            },
+            { 
+                $inc: { 'time_spent.$.time': timeSpent },
+                $set: { modified: Date.now() }
+            },
+            { new: true }
+        );
+
+        if (!scenarioUpdate) {
+            await scenario_details.updateOne(
+                { _id: ObjectId(scenarioId) },
+                {
+                    $push: {
+                        time_spent: {
+                            user_id: ObjectId(userId),
+                            time: timeSpent
+                        }
+                    },
+                    $set: { modified: Date.now() }
+                }
+            );
+        }
+
+        res.status(200).json({
+            error: false,
+            code: 200,
+            message: "Time Updated Successfully",
+            data: []
         });
 
     } catch (error) {
-        console.log("error::::", error)
-        res.status(400).send(error);
+        console.error("Error updating time spent:", error);
+        res.status(400).json({
+            error: true,
+            code: 400,
+            message: error.message,
+            data: []
+        });
     }
 };
+
 
 /***************** Get Users and Scenario details with time spent of KMS **************** */
 // exports.getUsersDetailsWithTimespentOld = async (req, res) => {
