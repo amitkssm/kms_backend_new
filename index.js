@@ -5,10 +5,12 @@ const fs = require('fs')
 const jwt = require('jsonwebtoken');
 const multer = require("multer");
 var bcrypt = require('bcryptjs');
+var randomstring = require('randomstring');
+const bodyParser = require('body-parser');
 const ObjectId = require('mongoose').Types.ObjectId;
 const cors = require("cors");
 const controller = require('./api.contrroller')
-const handler= require('./api.handler')
+const handler = require('./api.handler')
 
 // var validator = require('gstin-validator');
 
@@ -21,6 +23,10 @@ const { Question, scenario_details, Registration, logs } = require("./db/schema"
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Body parser middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.get('/', (req, res) => {
@@ -74,7 +80,7 @@ app.get('/getQuestion', handler.verifyToken, controller.getQuestion)
 app.get('/getscenario', handler.verifyToken, controller.getscenario)
 
 /************************ Get All Expired Scenerio Categories Action Id of KMS ******************* */
-app.get('/getExpiredScenario',  controller.getExpiredScenario)
+app.get('/getExpiredScenario', controller.getExpiredScenario)
 
 /************************ Get Items of Scenerio Action Id of KMS ********************** */
 app.post('/getItemsScenerio', handler.verifyToken, controller.getItemsScenerio)
@@ -98,7 +104,7 @@ app.post('/getUsersBasedOnUserRole', handler.verifyToken, controller.getUsersBas
 app.post('/getAgentBasedOnAdminId', handler.verifyToken, controller.getAgentBasedOnAdminId)
 
 /************************ Get All Ranking wise Scenerio of KMS ******************* */
-app.get('/getscenarioRankingWise', handler.verifyToken,  controller.getscenarioRankingWise)
+app.get('/getscenarioRankingWise', handler.verifyToken, controller.getscenarioRankingWise)
 
 /************************ Get most view Scenerio Details Id of KMS ******************* */
 app.get("/getMostViewSceneraioDetails", controller.getMostViewSceneraioDetails)
@@ -113,14 +119,14 @@ app.post('/getUsersDetailsWithTimespent', handler.verifyToken, controller.getUse
 app.post('/getScenarioDetailsWithTimespent', handler.verifyToken, controller.getScenarioDetailsWithTimespent)
 
 /************************ Get Scenerio Details based on Category and AdminId of KMS ******************* */
-app.post("/getScenarioBasedOnCatnAdm", handler.verifyToken,controller.getScenarioBasedOnCatnAdm)
+app.post("/getScenarioBasedOnCatnAdm", handler.verifyToken, controller.getScenarioBasedOnCatnAdm)
 
 
 /************************ Save Logs of KMS ******************* */
-app.post('/logs',handler.verifyToken,controller.logs)
+app.post('/logs', handler.verifyToken, controller.logs)
 
 /************************ update Logs of KMS ******************* */
-app.post("/updateLogs",handler.verifyToken, controller.updateLogs)
+app.post("/updateLogs", handler.verifyToken, controller.updateLogs)
 
 /************************ update Logs of KMS ******************* */
 app.post("/getAgentDetailsBasedOnAgentId", controller.getAgentDetailsBasedOnAgentId)
@@ -155,13 +161,20 @@ const nodemailer = require('nodemailer');
 
 //==================================== Function for send mail =====================================//
 
-// Create a nodemailer transporter
+// Configure nodemailer
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'amitkssm91@gmail.com', // replace with your email address
-        pass: '8340110350', // replace with your email password or app-specific password
-    },
+    // host: "email-smtp.us-east-1.amazonaws.com",
+    host : "mail.qdegrees.org",
+  protocol: "smtp",
+  port: 587,
+  auth: {
+    user: "dysinfo@qdegrees.org",
+    pass: "D!$!nfo@1234", 
+  },
+  rateLimit: 500,
+  pool: true,
+  maxConnections: 10,
+  maxMessages: 100000,
 });
 
 //==================================== Function for reset Password =====================================//
@@ -186,33 +199,55 @@ function sendResetPasswordEmail(userEmail, resetToken) {
 
 //==================================== API for Forget password =====================================//
 
-app.post('/send-otp', (req, res) => {
+app.post('/sendOtpVerifyByEmail', async (req, res) => {
+    console.log("AAAAAAAAAAAAAAAAAAAAAAA")
     const { email } = req.body;
-
-    // Generate random OTP
-    const otp = randomstring.generate({
-        length: 6,
-        charset: 'numeric'
-    });
-
-    // Email options
-    const mailOptions = {
-        from: 'yourgmail@gmail.com', // Replace with your Gmail address
-        to: email,
-        subject: 'OTP for Password Reset',
-        text: `Your OTP is: ${otp}`
-    };
-
-    // Send email
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('Error sending email:', error);
-            res.status(500).json({ success: false, message: 'Error sending OTP' });
-        } else {
-            console.log('Email sent: ', info.response);
-            res.status(200).json({ success: true, message: 'OTP sent successfully', otp });
+    try {
+        let user = await Registration.findOne({ email: email })
+        if (!user) {
+            return res.status(404).json({
+                error: true,
+                code: 404,
+                message: "User not found.",
+            });
         }
-    });
+        // Generate random OTP
+        const otp = randomstring.generate({
+            length: 6,
+            charset: 'numeric'
+        });
+
+        console.log(otp,"<<<<<<<<<<<<<111111111111111111")
+
+        // Email options
+        const mailOptions = {
+            from: 'DoYourSurvey" dysinfo@qdegrees.com', // Replace with your Gmail address
+            to: email,
+            subject: 'OTP for Password Reset',
+            text: `Your OTP is: ${otp}`
+        };
+
+        console.log(mailOptions,"BBBBBBBBBBBBBBB")
+
+        // Send email
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error sending email:', error);
+                res.status(500).json({ success: false, message: 'Error sending OTP' });
+            } else {
+                console.log('Email sent: ', info.response);
+                res.status(200).json({ success: true, message: 'OTP sent successfully', otp });
+            }
+        });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "something went wrong"
+        })
+    }
+
 });
 
 app.post("/forgotPassword", async (req, res) => {

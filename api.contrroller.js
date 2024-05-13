@@ -220,11 +220,11 @@ exports.saveQuestion = async (req, res) => {
     try {
         for (let i = 0; i < data.length; i++) {
             let question = data[i].question ? data[i].question : ""
+            let type = data[i].type ? data[i].type : "text"
             let options = data[i].options ? data[i].options : []
             let tables = data[i].tables ? data[i].tables : []
             let pre = data[i].pre ? data[i].pre : ""
             let scene = req.body.scene
-            let type = req.body.type ? req.body.type : "text"
             
 
             let saveData = {
