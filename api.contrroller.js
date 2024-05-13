@@ -224,6 +224,7 @@ exports.saveQuestion = async (req, res) => {
             let tables = data[i].tables ? data[i].tables : []
             let pre = data[i].pre ? data[i].pre : ""
             let scene = req.body.scene
+            let type = req.body.type ? req.body.type : "text"
             
 
             let saveData = {
@@ -235,7 +236,8 @@ exports.saveQuestion = async (req, res) => {
                 scene: scene,
                 start: data[i].start ? data[i].start : 0,
                 files:data[i].files?data[i].files:[],
-                linked:data[i].linked?data[i].linked:{}
+                linked:data[i].linked?data[i].linked:{},
+                type:type
 
             }
 
