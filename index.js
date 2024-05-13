@@ -106,9 +106,6 @@ app.get("/getMostViewSceneraioDetails", controller.getMostViewSceneraioDetails)
 /************************ update User And Scenario For Time Spent ******************* */
 app.post("/updateUserAndScenarioForTimeSpent", controller.updateUserAndScenarioForTimeSpent)
 
-/************************ Get Users and Scenario details with time spent of KMS ********************** */
-// app.post('/getUsersDetailsWithTimespentOld', handler.verifyToken,  controller.getUsersDetailsWithTimespentOld)
-
 /************************ Get Users details with time spent of KMS ********************** */
 app.post('/getUsersDetailsWithTimespent', handler.verifyToken, controller.getUsersDetailsWithTimespent)
 
@@ -167,24 +164,6 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// Function to send reset password email
-function sendResetPasswordEmail(userEmail, resetToken) {
-    const mailOptions = {
-        from: 'amitkssm91@gmail.com', // replace with your email address
-        to: userEmail,
-        subject: 'Password Reset',
-        text: `Click the following link to reset your password: http://your-app-url/reset-password?token=${resetToken}`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
-}
-
 //==================================== Function for reset Password =====================================//
 
 // Function to send reset password email
@@ -207,7 +186,36 @@ function sendResetPasswordEmail(userEmail, resetToken) {
 
 //==================================== API for Forget password =====================================//
 
-app.post("/forgot-password", async (req, res) => {
+app.post('/send-otp', (req, res) => {
+    const { email } = req.body;
+
+    // Generate random OTP
+    const otp = randomstring.generate({
+        length: 6,
+        charset: 'numeric'
+    });
+
+    // Email options
+    const mailOptions = {
+        from: 'yourgmail@gmail.com', // Replace with your Gmail address
+        to: email,
+        subject: 'OTP for Password Reset',
+        text: `Your OTP is: ${otp}`
+    };
+
+    // Send email
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error sending email:', error);
+            res.status(500).json({ success: false, message: 'Error sending OTP' });
+        } else {
+            console.log('Email sent: ', info.response);
+            res.status(200).json({ success: true, message: 'OTP sent successfully', otp });
+        }
+    });
+});
+
+app.post("/forgotPassword", async (req, res) => {
     try {
         const email = req.body.email;
         const user = await Registration.findOne({ email: email });
@@ -248,7 +256,7 @@ app.post("/forgot-password", async (req, res) => {
 
 //==================================== API for Reset password =====================================//
 
-app.post("/reset-password", async (req, res) => {
+app.post("/resetPassword", async (req, res) => {
     try {
         const { token, newPassword } = req.body;
         const user = await Registration.findOne({

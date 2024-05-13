@@ -53,6 +53,7 @@ const questionSchema = new mongoose.Schema({
     },
 
     is_final:{ type: Number, default: 0 },
+    type:{ type: String, default: text },
 
 });
 Question = mongoose.model("Questions", questionSchema);

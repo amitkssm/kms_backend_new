@@ -37,7 +37,7 @@ exports.file = (req, res) => {
 
 /*************************** Login API for Users in KMS ************************** */
 exports.login = async (req, res) => {
-    console.log("http://localhost:2222/login")
+    console.log("/login")
 
     try {
         let email = req.body.email ? req.body.email : ""
@@ -83,7 +83,7 @@ exports.login = async (req, res) => {
 
 /************************ Registration API for Users in KMS ************************ */
 exports.Registration = async (req, res) => {
-    console.log("http://localhost:2222/registration")
+    console.log("/registration")
 
     try {
 
@@ -186,7 +186,7 @@ exports.Registration = async (req, res) => {
 
 /**************************** Save Scenario of KMS ********************************* */
 exports.saveScenario = async (req, res) => {
-    console.log("http://localhost:2222/saveScenario")
+    console.log("/saveScenario")
 
     const question = await new scenario_details(req.body);
     question.save().then((question) => {
@@ -211,7 +211,7 @@ exports.saveScenario = async (req, res) => {
 
 /************************ Save Question and Options of KMS ************************* */
 exports.saveQuestion = async (req, res) => {
-    console.log("http://localhost:2222/saveQuestion")
+    console.log("/saveQuestion")
 
     // console.log(req.body.data[0].options)
     let count = 0
@@ -282,7 +282,7 @@ exports.saveQuestion = async (req, res) => {
 
 /******************** Get Question By Next and Pre Action Id Id of KMS ************* */
 exports.getQuestionById = async (req, res) => {
-    console.log("http://localhost:2222/getQuestionById")
+    console.log("/getQuestionById")
 
     try {
         const actionId = req.body.actionId ? req.body.actionId : null
@@ -307,7 +307,7 @@ exports.getQuestionById = async (req, res) => {
 
 /*********************** Get Question by Scenerio Action Id of KMS ****************** */
 exports.getQuestionByScenerio = async (req, res) => {
-    console.log("http://localhost:2222/getQuestionByScenerio")
+    console.log("/getQuestionByScenerio")
 
     try {
         const actionId = req.body.actionId ? req.body.actionId : null
@@ -332,7 +332,7 @@ exports.getQuestionByScenerio = async (req, res) => {
 
 /************************ Get All Questions and Options of KMS ********************** */
 exports.getQuestion = async (req, res) => {
-    console.log("http://localhost:2222/getQuestion")
+    console.log("/getQuestion")
 
     try {
         const result = await Question.find({}, { created_date: 0, __v: 0 });
@@ -378,7 +378,7 @@ exports.getscenario = async (req, res) => {
 
 /******************** Get All Expired Scenerio Categories Action Id of KMS ****************** */
 exports.getExpiredScenario = async (req, res) => {
-    console.log("http://localhost:2222/getExpiredScenario")
+    console.log("/getExpiredScenario")
     
     try {
         let desiredDate = new Date();
@@ -410,7 +410,7 @@ exports.getExpiredScenario = async (req, res) => {
 
 /************************ Get Items of Scenerio Action Id of KMS ********************* */
 exports.getItemsScenerio = async (req, res) => {
-    console.log("http://localhost:2222/getItemsScenerio")
+    console.log("/getItemsScenerio")
 
     const scene = req.body.scene ? req.body.scene : ""
     try {
@@ -434,7 +434,7 @@ exports.getItemsScenerio = async (req, res) => {
 
 /************************ Edit Questions and Options of KMS *************************** */
 exports.updateQuestion = async (req, res) => {
-    console.log("http://localhost:2222/updateQuestion")
+    console.log("/updateQuestion")
 
     try {
         let data = req.body.data ? req.body.data : []
@@ -465,7 +465,7 @@ exports.updateQuestion = async (req, res) => {
 
 /************************ Get Scenerio Details by Scenario Id of KMS ****************** */
 exports.getscenarioDetails = async (req, res) => {
-    console.log("http://localhost:2222/getscenarioDetails")
+    console.log("/getscenarioDetails")
 
     const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
 
@@ -502,7 +502,7 @@ exports.getscenarioDetails = async (req, res) => {
 
 /************************ Get Scenerio Details by Scenario Id of KMS ******************* */
 exports.sceneraioDetails = (req, res) => {
-    console.log("http://localhost:2222/sceneraioDetails")
+    console.log("/sceneraioDetails")
 
     try {
         scenario_details.findOne({ _id: req.body.id }).then((data) => {
@@ -522,7 +522,7 @@ exports.sceneraioDetails = (req, res) => {
 
 /************************ Increase Count by Scenario Id of KMS ************************* */
 exports.updateSceneraioCount = (req, res) => {
-    console.log("http://localhost:2222/updateSceneraioCount")
+    console.log("/updateSceneraioCount")
 
     try {
         const scenarioId = req.body.scenario_id ? req.body.scenario_id : ""
@@ -544,7 +544,7 @@ exports.updateSceneraioCount = (req, res) => {
 
 /************************ Get Users based on user role of KMS ************************** */
 exports.getUsersBasedOnUserRole = async (req, res) => {
-    console.log("http://localhost:2222/getUsersBasedOnUserRole")
+    console.log("/getUsersBasedOnUserRole")
 
     const userRole = req.body.user_role ? req.body.user_role : ""
     try {
@@ -569,7 +569,7 @@ exports.getUsersBasedOnUserRole = async (req, res) => {
 
 /************************ Get Users based on Admin Id of KMS *************************** */
 exports.getAgentBasedOnAdminId = async (req, res) => {
-    console.log("http://localhost:2222/getAgentBasedOnAdminId")
+    console.log("/getAgentBasedOnAdminId")
 
     const AdminId = req.body.admin_id ? req.body.admin_id : ""
     try {
@@ -594,7 +594,7 @@ exports.getAgentBasedOnAdminId = async (req, res) => {
 
 /************************ Get All Ranking wise Scenerio of KMS ************************** */
 exports.getscenarioRankingWise = async (req, res) => {
-    console.log("http://localhost:2222/getscenarioRankingWise")
+    console.log("/getscenarioRankingWise")
 
     try {
         const result = await scenario_details.find({});
@@ -632,7 +632,7 @@ exports.getscenarioRankingWise = async (req, res) => {
 
 /************************ Get most view Scenerio Details Id of KMS ********************** */
 exports.getMostViewSceneraioDetails = (req, res) => {
-    console.log("http://localhost:2222/getMostViewSceneraioDetails")
+    console.log("/getMostViewSceneraioDetails")
 
     scenario_details.find({}, { count: 1, scenario: 1, actionId: 1, circle: 1 })
         .sort({ count: -1 }) // Sort in descending order based on the count field
@@ -657,109 +657,9 @@ exports.getMostViewSceneraioDetails = (req, res) => {
 };
 
 /************************ update User And Scenario For Time Spent ********************** */
-// exports.updateUserAndScenarioForTimeSpent =async (req, res) => {
-//     console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
-
-//     try {
-//         const scenarioId = req.body.scenario_id ? req.body.scenario_id : "";
-//         const user_id = req.body.user_id ? req.body.user_id : "";
-//         const time_spent = req.body.time_spent ? parseInt(req.body.time_spent) : 0; // Convert time_spent to integer
-//         // Update Registration table
-//         let scenarioName = await scenario_details.findOne({_id:ObjectId(scenarioId)},{scenario:1,_id:0})
-//         console.log(scenarioName.scenario,"xxxxxxxxxxxxxxxxxx")
-//         Registration.findOneAndUpdate(
-//             {
-//                 "_id": ObjectId(user_id),
-//                 "time_spent.scenario_id": ObjectId(scenarioId)
-//             },
-//             {
-//                 $inc: { "time_spent.$.time": time_spent },
-//                 $set: {
-//                     "time_spent.$.last_click_time": Date.now(),
-//                     "time_spent.$.scenario_name": scenarioName.scenario,
-//                     modified: Date.now()
-//                 }
-//             },
-//             { new: true }
-//         ).then((registrationData) => {
-//             console.log("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
-
-//             if (!registrationData) {
-//             console.log("MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMm")
-
-//                 // If the combination doesn't exist, add a new entry in the Registration table
-//                 Registration.updateOne(
-//                     { "_id": ObjectId(user_id) },
-//                     {
-//                         $push: {
-//                             time_spent: {
-//                                 scenario_id: ObjectId(scenarioId),
-//                                 scenario_name: scenarioName.scenario,
-//                                 time: time_spent,
-//                                 last_click_time: Date.now(),
-                                
-//                             }
-//                         },
-//                         $set: { modified: Date.now() }
-//                     }
-//                 )
-//                 // .then(() => {
-//                 //     res.status(200).json({
-//                 //         error: false,
-//                 //         code: 200,
-//                 //         message: "Time Updated Successfully",
-//                 //         data: []
-//                 //     });
-//                 // });
-//             }
-
-//             // Update scenario_details table
-//             console.log("BBBBBBBBBBBBBBBBBBBBBBBCBBBB")
-//             scenario_details.findOneAndUpdate(
-//                 {
-//                     "_id": ObjectId(scenarioId),
-//                     "time_spent.user_id": ObjectId(user_id)
-//                 },
-//                 { $inc: { "time_spent.$.time": parseInt(time_spent) }, $set: { modified: Date.now() } },
-//                 { new: true }
-//             ).then((scenarioDetailsData) => {
-//             console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV")
-                
-//                 if (!scenarioDetailsData) {
-//                     // If the combination doesn't exist, add a new entry in the scenario_details table
-//                     scenario_details.updateOne(
-//                         { "_id": ObjectId(scenarioId) },
-//                         { $push: { time_spent: { user_id: ObjectId(user_id), time: time_spent } }, $set: { modified: Date.now() } }
-//                     ).then(() => {
-//             console.log("RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
-
-//                         res.status(200).json({
-//                             error: false,
-//                             code: 200,
-//                             message: "Time Updated Successfully",
-//                             data: []
-//                         });
-//                     });
-//                 } else {
-//                     // If the combination exists, update the time in the existing entry in the scenario_details table
-//                     res.status(200).json({
-//                         error: false,
-//                         code: 200,
-//                         message: "Time Updated Successfully",
-//                         data: []
-//                     });
-//                 }
-//             });
-//         });
-
-//     } catch (error) {
-//         console.log("error::::", error)
-//         res.status(400).send(error);
-//     }
-// };
 
 exports.updateUserAndScenarioForTimeSpent = async (req, res) => {
-    console.log("http://localhost:2222/updateUserAndScenarioForTimeSpent");
+    console.log("updateUserAndScenarioForTimeSpent");
 
     try {
         const scenarioId = req.body.scenario_id || "";
@@ -858,71 +758,9 @@ exports.updateUserAndScenarioForTimeSpent = async (req, res) => {
 };
 
 
-/***************** Get Users and Scenario details with time spent of KMS **************** */
-// exports.getUsersDetailsWithTimespentOld = async (req, res) => {
-    //     console.log("http://localhost:2222/getUsersDetailsWithTimespent")
-    
-    //     const scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
-    //     const user_id = req.body.user_id ? req.body.user_id : ""
-    //     try {
-    //         const result = await scenario_details.aggregate([
-    //             {
-    //                 "$match": { "_id": ObjectId(scenario_id) }
-    //             },
-    //             {
-    //                 "$unwind": "$time_spent"
-    //             },
-    //             {
-    //                 "$lookup": {
-    //                     "from": "registrations",
-    //                     "let": { "userId": "$time_spent.user_id" },
-    //                     "pipeline": [
-    //                         {
-    //                             "$match": {
-    //                                 "$expr": {
-    //                                     "$eq": ["$_id", "$$userId"],
-    //                                 },
-    //                             },
-    //                         },
-    //                     ],
-    //                     "as": "user_details"
-    //                 }
-    //             },
-    //             // {
-    //             //     "$group": {
-    //             //         "_id": "$_id",
-    //             //         "scenario": { "$first": "$scenario" },
-    //             //         "actionId": { "$first": "$actionId" },
-    //             //         "created": { "$first": "$created" },
-    //             //         "modified": { "$first": "$modified" },
-    //             //         "__v": { "$first": "$__v" },
-    //             //         "count": { "$first": "$count" },
-    //             //         "time_spent": { "$push": "$time_spent" },
-    //             //         "user_details": { "$first": "$user_details" }
-    //             //     }
-    //             // }
-    //         ]);
-    //         if (result) {
-    //             console.log(result.length);
-    //             res.status(200).json({
-    //                 error: false,
-    //                 code: 200,
-    //                 message: "Successfully",
-    //                 data: result,
-    //                 count: result.length
-    //             });
-    //         }
-    //     }
-    //     catch (error) {
-    //         console.log(error)
-    //         res.status(400).send(error);
-    //     }
-    
-// };
-
 /************************ Get Users details with time spent of KMS ********************** */
 exports.getUsersDetailsWithTimespent = async (req, res) => {
-    console.log("http://localhost:2222/getUsersDetailsWithTimespent");
+    console.log("/getUsersDetailsWithTimespent");
 
     const scenario_id = req.body.scenario_id ? req.body.scenario_id : "";
     const user_id = req.body.user_id ? req.body.user_id : "";
@@ -993,7 +831,7 @@ exports.getUsersDetailsWithTimespent = async (req, res) => {
 
 /*********************** Get scenario details with time spent of KMS ******************** */
 exports.getScenarioDetailsWithTimespent = async (req, res) => {
-    console.log("http://localhost:2222/getScenarioDetailsWithTimespent");
+    console.log("/getScenarioDetailsWithTimespent");
 
     const scenario_id = req.body.scenario_id ? req.body.scenario_id : "";
     const user_id = req.body.user_id ? req.body.user_id : "";
@@ -1068,7 +906,7 @@ exports.getScenarioDetailsWithTimespent = async (req, res) => {
 
 /************** Get Scenerio Details based on Category and AdminId of KMS *************** */
 exports.getScenarioBasedOnCatnAdm = (req, res) => {
-    console.log("http://localhost:2222/getScenarioBasedOnCatnAdm")
+    console.log("/getScenarioBasedOnCatnAdm")
 
     let category = req.body.category ? req.body.category : ""
     let admin_id = req.body.admin_id ? req.body.admin_id : ""
@@ -1092,7 +930,7 @@ exports.getScenarioBasedOnCatnAdm = (req, res) => {
 
 /***************************************** Save Logs of KMS ***************************** */
 exports.logs =  async (req, res) => {
-    console.log("http://localhost:2222/logs")
+    console.log("/logs")
 
     let scenario_id = req.body.scenario_id ? req.body.scenario_id : ""
     let user_id = req.body.user_id ? req.body.user_id : ""
@@ -1126,21 +964,12 @@ exports.logs =  async (req, res) => {
 
 /************************************ update Logs of KMS ******************************** */
 exports.updateLogs = async (req, res) => {
-    console.log("http://localhost:2222/updateLogs");
+    console.log("/updateLogs");
 
     try {
         const log_id = req.body.log_id;
         const step_id = req.body.step_id 
         const time_spent = req.body.time_spent;
-
-        // if (!log_id || !step_id) {
-        //     return res.status(400).json({
-        //         error: true,
-        //         code: 400,
-        //         message: "log_id and step_id are required fields"
-        //     });
-        // }
-        console.log(req.body,"qqqqqqqqqqqqqqqqqqqqqqqq")
 
         const result = await logs.updateOne(
             { "_id": ObjectId(log_id) },
@@ -1174,7 +1003,7 @@ exports.updateLogs = async (req, res) => {
 
 /************** Get Agent Details based  AgentId of KMS *************** */
 exports.getAgentDetailsOfAdmin = (req, res) => {
-    console.log("http://localhost:2222/getAgentDetailsOfAdmin")
+    console.log("/getAgentDetailsOfAdmin")
 
     let agent_id = req.body.agent_id ? req.body.agent_id : ""
     Registration.findOne({ _id: ObjectId(agent_id) }).then(async(data) => {
@@ -1202,7 +1031,7 @@ exports.getAgentDetailsOfAdmin = (req, res) => {
 };
 
 exports.getAgentDetailsBasedOnAgentId = async (req, res) => {
-    console.log("http://localhost:2222/getAgentDetailsBasedOnAgentId");
+    console.log("/getAgentDetailsBasedOnAgentId");
 
     let agent_id = req.body.agent_id ? req.body.agent_id : "";
 
@@ -1340,7 +1169,7 @@ exports.getAgentDetailsBasedOnAgentId = async (req, res) => {
 
 /************** Get Agent logs Details based on user_id & scenario_id*************** */
 exports.getAgentLogsDetails = async(req, res) => {
-    console.log("http://localhost:2222/getAgentLogsDetails")
+    console.log("/getAgentLogsDetails")
 
     try {
         const user_id = req.body.user_id;
