@@ -1173,30 +1173,33 @@ exports.getAllQuestionBasedOnScenarioId = async (req, res) => {
     console.log("/getAllQuestionBasedOnScenarioId")
 
     try {
-        const scenario_id = req.body.scenario_id ? req.body.scenario_id : null
+        const scenario_id = req.body.scenario_id ? req.body.scenario_id : null;
         const questions = await Question.find({ scene: scenario_id });
-        // console.log('find>>>>>>>>>>:::',questions);
+        // console.log('find>>>>>>>>>>:::', questions);
 
         let questionArr = [];
-        let tempPre = '';
 
-        for (let i = 0; i < questions.length; i++) {
-            if (i === 0 || questions[i].pre === tempPre) {
-                questionArr.push(questions[i]);
-                tempPre = questions[i].options[0].next;
-            }
+        // Find the first question where the 'pre' field is empty
+        const firstQuestion = questions.find(question => question.pre === "");
+
+        // Push the first question into the questionArr array
+        if (firstQuestion) questionArr.push(firstQuestion);
+
+        // Find and push subsequent questions where the 'pre' field matches the 'next' field of the previous question's option
+        let nextQuestion = questions.find(question => question.pre === firstQuestion.options[0].next);
+        while (nextQuestion) {
+            questionArr.push(nextQuestion);
+            nextQuestion = questions.find(question => question.pre === nextQuestion.options[0]?.next);
         }
 
-        console.log(questionArr,"<<<<<<<<<<<<<<<<<<<<<<<<<<<,")
-        if (questions) {
-            // console.log(question.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Question Fetched Successfully",
-                data: questions
-            })
-        }
+        // console.log(questionArr, "<<<<<<<<<<<<<<<<<<<<<<<<<<<,");
+
+        res.status(201).json({
+            error: false,
+            code: 201,
+            message: "Question Fetched Successfully",
+            data: questionArr
+        });
     }
     catch (error) {
         console.log(error)
