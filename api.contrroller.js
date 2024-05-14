@@ -7,7 +7,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 const secretKey = 'kms-ak-node';
 const handler = require('./api.handler')
 
-const { Question, scenario_details, Registration, logs } = require("./db/schema")
+const { Question, scenario_details, Registration, logs,Email_otp } = require("./db/schema")
 
 
 
@@ -1166,6 +1166,43 @@ exports.getAgentDetailsBasedOnAgentId = async (req, res) => {
             data: error.message
         });
     }
+};
+
+
+exports.getAllQuestionBasedOnScenarioId = async (req, res) => {
+    console.log("/getAllQuestionBasedOnScenarioId")
+
+    try {
+        const scenario_id = req.body.scenario_id ? req.body.scenario_id : null
+        const questions = await Question.find({ scene: scenario_id });
+        // console.log('find>>>>>>>>>>:::',questions);
+
+        let questionArr = [];
+        let tempPre = '';
+
+        for (let i = 0; i < questions.length; i++) {
+            if (i === 0 || questions[i].pre === tempPre) {
+                questionArr.push(questions[i]);
+                tempPre = questions[i].options[0].next;
+            }
+        }
+
+        console.log(questionArr,"<<<<<<<<<<<<<<<<<<<<<<<<<<<,")
+        if (questions) {
+            // console.log(question.length);
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Question Fetched Successfully",
+                data: questions
+            })
+        }
+    }
+    catch (error) {
+        console.log(error)
+        res.status(400).send(error);
+    }
+
 };
 
 

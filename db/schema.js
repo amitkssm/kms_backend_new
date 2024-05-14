@@ -95,6 +95,14 @@ const logsSchema = new mongoose.Schema({
 });
 logs = mongoose.model("logs", logsSchema);
 
+const emailOtpSchema = new mongoose.Schema({
+    email: String,
+    otp: Number,
+    expire_in: Date
+})
+
+var Email_otp = mongoose.model('email_otp', emailOtpSchema, 'email_otp')
+
 
 module.exports = {
     
@@ -102,5 +110,6 @@ module.exports = {
     Question,
     scenario_details,
     logs,
+    Email_otp
 
 }

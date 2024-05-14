@@ -17,7 +17,7 @@ const handler = require('./api.handler')
 
 require("./db/config");
 
-const { Question, scenario_details, Registration, logs } = require("./db/schema")
+const { Question, scenario_details, Registration, logs,Email_otp } = require("./db/schema")
 
 
 const app = express();
@@ -139,6 +139,8 @@ app.post("/getAgentLogsDetails", controller.getAgentLogsDetails)
 
 app.post("/getSoftwareNames", controller.getSoftwareNames)
 
+app.post("/getAllQuestionBasedOnScenarioId", controller.getAllQuestionBasedOnScenarioId)
+
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
 // app.post('/deleteSceine', controller.deleteSceine)
 
@@ -164,12 +166,13 @@ const nodemailer = require('nodemailer');
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
     // host: "email-smtp.us-east-1.amazonaws.com",
-    host : "mail.qdegrees.org",
+  host : "smtp.office365.com",
   protocol: "smtp",
+  // port: 465,
   port: 587,
   auth: {
-    user: "dysinfo@qdegrees.org",
-    pass: "D!$!nfo@1234", 
+    user: "dysinfo@qdegrees.com",
+    pass: "DoYourSurvey@DYS", 
   },
   rateLimit: 500,
   pool: true,
@@ -177,27 +180,9 @@ const transporter = nodemailer.createTransport({
   maxMessages: 100000,
 });
 
-//==================================== Function for reset Password =====================================//
 
-// Function to send reset password email
-function sendResetPasswordEmail(userEmail, resetToken) {
-    const mailOptions = {
-        from: 'amit.kumar1@qdegrees.org',
-        to: userEmail,
-        subject: 'Password Reset',
-        text: `Click the following link to reset your password: http://your-app-url/reset-password?token=${resetToken}`,
-    };
 
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error(error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
-}
-
-//==================================== API for Forget password =====================================//
+//==================== API for Send OTP and Verify OTP By Email For Forgot Password ======================//
 
 app.post('/sendOtpVerifyByEmail', async (req, res) => {
     console.log("AAAAAAAAAAAAAAAAAAAAAAA")
@@ -227,16 +212,25 @@ app.post('/sendOtpVerifyByEmail', async (req, res) => {
             text: `Your OTP is: ${otp}`
         };
 
-        console.log(mailOptions,"BBBBBBBBBBBBBBB")
-
+        // console.log(mailOptions,"BBBBBBBBBBBBBBB")
+        // res.status(201).json({ success: true, message: 'OTP sent successfully', mailOptions });
         // Send email
-        transporter.sendMail(mailOptions, (error, info) => {
+        transporter.sendMail(mailOptions,async (error, info) => {
             if (error) {
                 console.log('Error sending email:', error);
                 res.status(500).json({ success: false, message: 'Error sending OTP' });
             } else {
+                let result = await Email_otp.findOneAndUpdate({ "email": email }, { "otp": generateOtp, "expire_in": Date.now() }, { upsert: true });
+                let result1 = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1});
                 console.log('Email sent: ', info.response);
-                res.status(200).json({ success: true, message: 'OTP sent successfully', otp });
+                if (result) {
+                    return res.status(201).json({
+                        error: false,
+                        code: 201,
+                        message: `OTP sent successfully`,
+                        data: result1
+                    })
+                }
             }
         });
     } catch (error) {
@@ -250,82 +244,116 @@ app.post('/sendOtpVerifyByEmail', async (req, res) => {
 
 });
 
-app.post("/forgotPassword", async (req, res) => {
+app.post('/verifyOtpForEmail', async (req, res) => {
+
     try {
-        const email = req.body.email;
-        const user = await Registration.findOne({ email: email });
-
-        if (!user) {
-            return res.status(404).json({
+        if (req.body.email && req.body.email != "") {
+            console.log("inside email otp sent")
+            let email = req.body.email
+            let otp = req.body.otp
+            let result = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1,otp:1})
+            if (result && result.otp == otp) {
+                res.status(200).json({
+                    error: false,
+                    code: 200,
+                    message: `OTP successfully verified`,
+                    data: result
+                })
+            } else {
+                res.status(201).json({
+                    error: true,
+                    code: 201,
+                    message: "OTP not correct"
+                })
+            }
+        } else {
+            res.status(400).json({
                 error: true,
-                code: 404,
-                message: "User not found.",
-            });
+                code: 400,
+                message: "Email not found"
+            })
         }
-
-        // Generate a unique token or temporary password reset link
-        const resetToken = generateUniqueToken(); // Implement this function
-        console.log(resetToken, "pppppppppppaaaaaaaaaaaaaaaa")
-        // Store the token, user ID, and expiration time in the database
-        user.resetPasswordToken = resetToken;
-        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-        await user.save();
-
-        // Send an email to the user with the reset link
-        sendResetPasswordEmail(user.email, resetToken); // Implement this function
-
-        res.status(200).json({
-            success: true,
-            message: "Password reset instructions sent to your email.",
-        });
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
         res.status(500).json({
             error: true,
             code: 500,
-            message: "Something went wrong.",
-            data: error,
-        });
+            message: "something went wrong",
+            data: err
+        })
     }
-});
+})
 
 //==================================== API for Reset password =====================================//
 
-app.post("/resetPassword", async (req, res) => {
-    try {
-        const { token, newPassword } = req.body;
-        const user = await Registration.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() },
-        });
-
-        if (!user) {
-            return res.status(400).json({
+app.post('/forgetPassword', async (req, res) => {
+    const { newPassword, confirmPassword } = req.body;
+    const email = req.body.email
+    if (newPassword && confirmPassword && newPassword !== "") {
+        if (newPassword == confirmPassword) {
+            console.log("new password and confirm passwor match")
+        } else {
+            return res.status(201).json({
                 error: true,
-                code: 400,
-                message: "Invalid or expired token.",
-            });
+                code: 201,
+                message: "password and confirm password not match"
+            })
         }
-
-        // Update the user's password
-        user.password = await bcryptPassword(newPassword); // Implement this function
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save();
-
-        res.status(200).json({
-            success: true,
-            message: "Password successfully reset.",
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Something went wrong.",
-            data: error,
-        });
     }
-});
+    else {
+        return res.status(201).json({
+            error: true,
+            code: 201,
+            message: "please enter password and confirm password"
+        })
+    }
+    if (email) {
+        Registration.findOne({ email }, async (err, user) => {
+            if (err || !user) {
+
+                return res.status(201).json({
+                    error: true,
+                    code: 201,
+                    status: "failure",
+                    message: "user does not exists !"
+                })
+            }
+            else {
+
+
+                let bPassword = await handler.bcryptPassword(newPassword)
+                if (bPassword) {
+
+                    Registration.updateOne({ email: user.email }, { $set: { password: bPassword } }, (error, docs) => {
+                        if (!error && docs) {
+
+                            return res.status(200).json({
+                                error: false,
+                                code: 200,
+                                message: "Password Changed Successfully",
+                                data: docs
+                            });
+                        }
+                        else {
+                            res.status(500).json({
+                                error: true,
+                                code: 500,
+                                message: "error in updating password",
+                                data: error
+                            });
+                        }
+                    })
+                } else {
+                    res.status(201).json({
+                        error: true,
+                        code: 201,
+                        message: "error in decrypt password"
+                    })
+                }
+
+            }
+        })
+    }
+
+})
 
 /////////////================= End Forget Password Section =======================/////////////
