@@ -98,7 +98,7 @@ logs = mongoose.model("logs", logsSchema);
 const emailOtpSchema = new mongoose.Schema({
     email: String,
     otp: Number,
-    expire_in: Date
+    expire_in: String
 })
 
 var Email_otp = mongoose.model('email_otp', emailOtpSchema, 'email_otp')

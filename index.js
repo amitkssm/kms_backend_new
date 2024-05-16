@@ -7,6 +7,10 @@ const multer = require("multer");
 var bcrypt = require('bcryptjs');
 var randomstring = require('randomstring');
 const bodyParser = require('body-parser');
+var moment = require('moment');
+
+
+
 const ObjectId = require('mongoose').Types.ObjectId;
 const cors = require("cors");
 const controller = require('./api.contrroller')
@@ -175,11 +179,10 @@ const transporter = nodemailer.createTransport({
 });
 
 
-
 //==================== API for Send OTP and Verify OTP By Email For Forgot Password ======================//
 
 app.post('/sendOtpVerifyByEmail', async (req, res) => {
-    console.log("AAAAAAAAAAAAAAAAAAAAAAA")
+    console.log("sendOtpVerifyByEmail")
     const { email } = req.body;
     try {
         let user = await Registration.findOne({ email: email })
@@ -197,36 +200,54 @@ app.post('/sendOtpVerifyByEmail', async (req, res) => {
         });
 
         // Calculate OTP expiration time (5 minutes from now)
-        const otpExpiration = moment().add(5, 'minutes');
-
-        console.log(otp,"<<<<<<<<<<<<<111111111111111111")
+        const expire_at1 = moment().format("YYYY-MM-DD HH:mm:ss")
+        const expire_at = moment().add(5, 'minutes').format("YYYY-MM-DD HH:mm:ss")
+        const expire_time = moment().add(5, 'minutes').format("HH:mm:ss")
 
         // Email options
         const mailOptions = {
             from: 'nainjihora@gmail.com', // Replace with your Gmail address
             to: email,
             subject: 'OTP for Password Reset',
-            text: `Your OTP is: ${otp}`
+            text: `Your OTP is: ${otp}. It will expire on ${expire_time} and was sent at ${expire_at1}`
         };
 
-        console.log(mailOptions,"BBBBBBBBBBBBBBB")
-        // res.status(201).json({ success: true, message: 'OTP sent succes  sfully', mailOptions });
         // Send email
         transporter.sendMail(mailOptions,async (error, info) => {
             if (error) {
                 console.log('Error sending email:', error);
                 res.status(500).json({ success: false, message: 'Error sending OTP' });
             } else {
-                let result = await Email_otp.findOneAndUpdate({ "email": email }, { "otp": otp, "expire_in": otpExpiration }, { upsert: true });
-                let result1 = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1});
-                console.log('Email sent: ', info.response);
-                if (result) {
-                    return res.status(201).json({
-                        error: false,
-                        code: 201,
-                        message: `OTP sent successfully`,
-                        data: result1
-                    })
+                
+                let existingDocument = await Email_otp.findOne({ email: email });
+
+                if (existingDocument) {
+                    // Update the existing document
+                    let result = await Email_otp.findOneAndUpdate({ "email": email }, { "otp": otp, "expire_in": expire_at });
+                    let result1 = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1});
+                    console.log('Email sent: ', info.response);
+                    if (result) {
+                        return res.status(201).json({
+                            error: false,
+                            code: 201,
+                            message: `OTP sent successfully`,
+                            data: result1
+                        })
+                    }
+                } else {
+                    // Save a new document
+                    let newDocument = new Email_otp({ email: email, otp: otp, expire_in: expire_at });
+                    let savedDocument = await newDocument.save();
+                    let result1 = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1});
+                    console.log('Email sent: ', info.response);
+                    if (savedDocument) {
+                        return res.status(201).json({
+                            error: false,
+                            code: 201,
+                            message: `OTP sent successfully`,
+                            data: result1
+                        })
+                    }
                 }
             }
         });
@@ -242,43 +263,63 @@ app.post('/sendOtpVerifyByEmail', async (req, res) => {
 });
 
 app.post('/verifyOtpForEmail', async (req, res) => {
-
     try {
-        if (req.body.email && req.body.email != "") {
-            console.log("inside email otp sent")
-            let email = req.body.email
-            let otp = req.body.otp
-            let result = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1,otp:1})
+        if (req.body.email && req.body.email !== "") {
+            console.log("inside email otp verification")
+            let email = req.body.email;
+            let otp = req.body.otp;
+            let result = await Email_otp.findOne({ "email": email }, {_id:1, email:1, expire_in:1, otp:1 });
+            // Check if OTP exists and matches
             if (result && result.otp == otp) {
-                res.status(200).json({
-                    error: false,
-                    code: 200,
-                    message: `OTP successfully verified`,
-                    data: result
-                })
+                // Parse the expire_in field into a Date object
+                const expirationTime = new Date(result.expire_in);
+                const currentTime = new Date();
+
+                // Check if OTP has expired
+                if (currentTime > expirationTime) {
+                    // OTP has expired
+                    return res.status(400).json({
+                        error: true,
+                        code: 400,
+                        message: "OTP has expired"
+                    });
+                } else {
+                    // OTP is valid
+                   
+                    return res.status(200).json({
+                        error: false,
+                        code: 200,
+                        message: "OTP successfully verified",
+                        data: []
+                    });
+                }
             } else {
-                res.status(201).json({
+                // OTP not correct
+                return res.status(201).json({
                     error: true,
                     code: 201,
                     message: "OTP not correct"
-                })
+                });
             }
         } else {
-            res.status(400).json({
+            // Email not found
+            return res.status(400).json({
                 error: true,
                 code: 400,
                 message: "Email not found"
-            })
+            });
         }
     } catch (err) {
-        res.status(500).json({
+        console.log(err)
+        return res.status(500).json({
             error: true,
             code: 500,
-            message: "something went wrong",
+            message: "Something went wrong",
             data: err
-        })
+        });
     }
-})
+});
+
 
 //==================================== API for Reset password =====================================//
 
