@@ -1294,47 +1294,29 @@ exports.getAgentLogsDetails = async(req, res) => {
         });
     }
 };
-const fetch = require('node-fetch');
-// Replace 'API_ENDPOINT' with the actual URL of the API
-const API_ENDPOINT = 'https://example.com/api/software';
 
-exports.getSoftwareNames = async (req, res) => {
-    try {
-        const response = await fetch(API_ENDPOINT);
-        console.log(response,"zzzzzzzzzzzzzzzzzzzzz")
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        
-        const contentType = response.headers.get('Content-Type');
-        
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error(`Invalid content type: ${contentType}`);
-        }
-        
-        const data = await response.json();        
-        console.log(data,"aaaaaaaaaaaaaaaaaaa")
 
-        // Assuming the API response is an array of software objects with a 'name' property
-        const softwareNames = data.map(software => software.name);
-        console.log(softwareNames,"xxxxxxxxxxxxxxxxxxxxxx")
-
-        res.status(200).json({
-            error: false,
-            code: 200,
-            message: "Successfully",
-            data: softwareNames, // Assuming you want a single scenario's details
+/************************ Get Image Type Schenario ********************** */
+exports.getSchenarioImageType = (req, res) => {
+    console.log("/getSchenarioImageType")
+    scenario_details.find({type:"image"})
+        .then((data) => {
+            res.status(201).json({
+                error: false,
+                code: 201,
+                message: "Scenario Fetched Successfully",
+                data: data
+            });
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).json({
+                error: true,
+                code: 500,
+                message: "Internal Server Error",
+                data: error.message
+            });
         });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Internal Server Error",
-            data: error.message
-        });
-    }
 };
 
 

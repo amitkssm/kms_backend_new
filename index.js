@@ -137,9 +137,10 @@ app.post("/getAgentDetailsOfAdmin", controller.getAgentDetailsOfAdmin)
 /************************ update Logs of KMS ******************* */
 app.post("/getAgentLogsDetails", controller.getAgentLogsDetails)
 
-app.post("/getSoftwareNames", controller.getSoftwareNames)
 
 app.post("/getAllQuestionBasedOnScenarioId", controller.getAllQuestionBasedOnScenarioId)
+
+app.get("/getSchenarioImageType", controller.getSchenarioImageType)
 
 /************************ Delete Qestions and Options bye Scene Id of KMS ******************* */
 // app.post('/deleteSceine', controller.deleteSceine)
@@ -166,18 +167,11 @@ const nodemailer = require('nodemailer');
 // Configure nodemailer
 const transporter = nodemailer.createTransport({
     // host: "email-smtp.us-east-1.amazonaws.com",
-  host : "smtp.office365.com",
-  protocol: "smtp",
-  // port: 465,
-  port: 587,
-  auth: {
-    user: "dysinfo@qdegrees.com",
-    pass: "DoYourSurvey@DYS", 
-  },
-  rateLimit: 500,
-  pool: true,
-  maxConnections: 10,
-  maxMessages: 100000,
+    service: 'gmail',
+    auth: {
+        user: 'nainjihora@gmail.com', // Your email address
+        pass: 'qzxo ldiu mzcx znwk' // Your password for the email address
+    }
 });
 
 
@@ -202,25 +196,28 @@ app.post('/sendOtpVerifyByEmail', async (req, res) => {
             charset: 'numeric'
         });
 
+        // Calculate OTP expiration time (5 minutes from now)
+        const otpExpiration = moment().add(5, 'minutes');
+
         console.log(otp,"<<<<<<<<<<<<<111111111111111111")
 
         // Email options
         const mailOptions = {
-            from: 'DoYourSurvey" dysinfo@qdegrees.com', // Replace with your Gmail address
+            from: 'nainjihora@gmail.com', // Replace with your Gmail address
             to: email,
             subject: 'OTP for Password Reset',
             text: `Your OTP is: ${otp}`
         };
 
-        // console.log(mailOptions,"BBBBBBBBBBBBBBB")
-        // res.status(201).json({ success: true, message: 'OTP sent successfully', mailOptions });
+        console.log(mailOptions,"BBBBBBBBBBBBBBB")
+        // res.status(201).json({ success: true, message: 'OTP sent succes  sfully', mailOptions });
         // Send email
         transporter.sendMail(mailOptions,async (error, info) => {
             if (error) {
                 console.log('Error sending email:', error);
                 res.status(500).json({ success: false, message: 'Error sending OTP' });
             } else {
-                let result = await Email_otp.findOneAndUpdate({ "email": email }, { "otp": generateOtp, "expire_in": Date.now() }, { upsert: true });
+                let result = await Email_otp.findOneAndUpdate({ "email": email }, { "otp": otp, "expire_in": otpExpiration }, { upsert: true });
                 let result1 = await Email_otp.findOne({ "email": email },{_id:1,email:1,expire_in:1});
                 console.log('Email sent: ', info.response);
                 if (result) {
@@ -355,5 +352,7 @@ app.post('/forgetPassword', async (req, res) => {
     }
 
 })
+
+
 
 /////////////================= End Forget Password Section =======================/////////////
