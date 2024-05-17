@@ -8,6 +8,8 @@ var bcrypt = require('bcryptjs');
 var randomstring = require('randomstring');
 const bodyParser = require('body-parser');
 var moment = require('moment');
+const path = require('path');
+const https = require('https');
 
 
 
@@ -33,13 +35,31 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
+// app.get('/', (req, res) => {
+//     res.send("Home Page Of KMS");
+// })
+
+// app.listen((2222), () => {
+//     console.log("app is running on port 2222")
+// })
+
+let server;
+const options = {
+    key: fs.readFileSync(path.join(`./SSL/kms.qdegrees.pem`)),//ssl.key
+    
+    cert: fs.readFileSync(path.join(`./SSL/kms.qdegrees.crt`))  //ssl.cert
+    };
+    console.log(options);
+
+    server = https.createServer(options, app);
+
 app.get('/', (req, res) => {
     res.send("Home Page Of KMS");
 })
 
-app.listen((2222), () => {
-    console.log("app is running on port 2222")
-})
+server.listen((3006), () => {
+    console.info(`Express server listening on PORT: 3006`)
+});
 
 //====================================== Function For handler.upload Image ===============================================//
 
@@ -166,7 +186,7 @@ const resetToken = generateUniqueToken();
 
 const nodemailer = require('nodemailer');
 
-//==================================== Function for send mail =====================================//
+//=================== Function for send OTP for forgot password on mail ======================//
 
 // Configure nodemailer
 const transporter = nodemailer.createTransport({

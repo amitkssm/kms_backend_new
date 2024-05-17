@@ -102,7 +102,7 @@ const emailOtpSchema = new mongoose.Schema({
     expire_in: String
 })
 
-var Email_otp = mongoose.model('email_otp', emailOtpSchema, 'email_otp')
+Email_otp = mongoose.model('email_otp', emailOtpSchema, 'email_otp')
 
 
 module.exports = {
