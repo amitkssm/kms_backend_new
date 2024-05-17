@@ -76,6 +76,7 @@ const scenarioSchema = new mongoose.Schema({
     ],
     count: { type: Number, default: 0 },
     type:String,
+    device_type:String,
     last_click_time: { type: Date, default: Date.now },
     created: { type: Date, default: Date.now },
     modified: { type: Date, default: Date.now }
