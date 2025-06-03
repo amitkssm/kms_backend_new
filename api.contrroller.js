@@ -378,6 +378,45 @@ exports.getscenario = async (req, res) => {
 };
 
 
+exports.deleteScenario = async (req, res) => {
+    try {
+        const { _id } = req.body;
+
+        if (!_id) {
+            return res.status(400).json({
+                error: true,
+                code: 400,
+                message: "Scenario ID (_id) is required",
+            });
+        }
+
+        const deleted = await scenario_details.findByIdAndDelete(_id);
+
+        if (deleted) {
+            res.status(200).json({
+                error: false,
+                code: 200,
+                message: "Scenario deleted successfully",
+                data: deleted
+            });
+        } else {
+            res.status(404).json({
+                error: true,
+                code: 404,
+                message: "Scenario not found",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Internal Server Error",
+            data: error.message
+        });
+    }
+};
+
 /******************** Get All Expired Scenerio Categories Action Id of KMS ****************** */
 exports.getExpiredScenario = async (req, res) => {
     console.log("/getExpiredScenario")

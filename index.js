@@ -107,6 +107,9 @@ app.post('/getUsersBasedOnUserRole', handler.verifyToken, controller.getUsersBas
 /************************ Get Users based on Admin Id of KMS ********************** */
 app.post('/getAgentBasedOnAdminId', handler.verifyToken, controller.getAgentBasedOnAdminId)
 
+/************************ Get Users based on Admin Id of KMS ********************** */
+app.post('/deleteScenario', handler.verifyToken, controller.deleteScenario)
+
 /************************ Get All Ranking wise Scenerio of KMS ******************* */
 app.get('/getscenarioRankingWise', handler.verifyToken, controller.getscenarioRankingWise)
 
