@@ -87,7 +87,6 @@ exports.Registration = async (req, res) => {
 
     try {
 
-        let profile_image = req.file.image ? req.file.image : ""
         let name = req.body.name ? req.body.name : ""
         let mobile_number = req.body.mobile_number ? req.body.mobile_number : ""
         let email = req.body.email ? req.body.email : ""
@@ -96,7 +95,8 @@ exports.Registration = async (req, res) => {
         let admin_id = req.body.admin_id ? req.body.admin_id : ""
         let category = req.body.category ? req.body.category : ""
 
-        let file = req.file.filename
+        // Safe access to file upload
+        const file = req.file && req.file.filename ? req.file.filename : "";
         let bPassword = await handler.bcryptPassword(password)
 
         function validateEmail(email) {
@@ -127,7 +127,6 @@ exports.Registration = async (req, res) => {
 
                     let saveData = {
 
-                        // profile_image: "http://localhost:2222/uploads/" + file,
                         profile_image: file,
                         name: name,
                         mobile_number: mobile_number,
@@ -207,6 +206,46 @@ exports.saveScenario = async (req, res) => {
         })
     })
 
+};
+
+
+exports.deleteScenario = async (req, res) => {
+    try {
+        const { _id } = req.body;
+
+        if (!_id) {
+            return res.status(400).json({
+                error: true,
+                code: 400,
+                message: "Scenario ID (_id) is required",
+            });
+        }
+
+        const deleted = await scenario_details.findByIdAndDelete(_id);
+
+        if (deleted) {
+            res.status(200).json({
+                error: false,
+                code: 200,
+                message: "Scenario deleted successfully",
+                data: deleted
+            });
+        } else {
+            res.status(404).json({
+                error: true,
+                code: 404,
+                message: "Scenario not found",
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Internal Server Error",
+            data: error.message
+        });
+    }
 };
 
 /************************ Save Question and Options of KMS ************************* */
@@ -377,45 +416,6 @@ exports.getscenario = async (req, res) => {
 
 };
 
-
-exports.deleteScenario = async (req, res) => {
-    try {
-        const { _id } = req.body;
-
-        if (!_id) {
-            return res.status(400).json({
-                error: true,
-                code: 400,
-                message: "Scenario ID (_id) is required",
-            });
-        }
-
-        const deleted = await scenario_details.findByIdAndDelete(_id);
-
-        if (deleted) {
-            res.status(200).json({
-                error: false,
-                code: 200,
-                message: "Scenario deleted successfully",
-                data: deleted
-            });
-        } else {
-            res.status(404).json({
-                error: true,
-                code: 404,
-                message: "Scenario not found",
-            });
-        }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            error: true,
-            code: 500,
-            message: "Internal Server Error",
-            data: error.message
-        });
-    }
-};
 
 /******************** Get All Expired Scenerio Categories Action Id of KMS ****************** */
 exports.getExpiredScenario = async (req, res) => {
@@ -1357,6 +1357,7 @@ exports.getSchenarioImageType = (req, res) => {
             });
         });
 };
+
 
 
 /************************ Delete Qestions and Options bye Scene Id of KMS **************** */
