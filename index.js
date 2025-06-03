@@ -8,20 +8,23 @@ var bcrypt = require('bcryptjs');
 var randomstring = require('randomstring');
 const bodyParser = require('body-parser');
 var moment = require('moment');
+const path = require('path');
+const https = require('https');
 
 
 
 const ObjectId = require('mongoose').Types.ObjectId;
 const cors = require("cors");
-const controller = require('./api.contrroller')
-const handler = require('./api.handler')
+// const controller = require('./api.contrroller')
+// const handler = require('./api.handler')
+
+
 
 // var validator = require('gstin-validator');
 
 
 require("./db/config");
 
-const { Question, scenario_details, Registration, logs,Email_otp } = require("./db/schema")
 
 
 const app = express();
@@ -34,39 +37,60 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 app.get('/', (req, res) => {
-    res.send("Home Page Of KMS");
+    res.send("Home Page of Edu guru");
 })
 
-app.listen((2222), () => {
-    console.log("app is running on port 2222")
+app.listen((3006), () => {
+    console.log("app is running on port 3006")
 })
+
+// let server;
+// const options = {
+//     key: fs.readFileSync(path.join(`./SSL/kms.qdegrees.pem`)),//ssl.key
+    
+//     cert: fs.readFileSync(path.join(`./SSL/kms.qdegrees.crt`))  //ssl.cert
+//     };
+//     console.log(options);
+
+//     server = https.createServer(options, app);
+
+// app.get('/', (req, res) => {
+//     res.send("Home Page Of KMS");
+// })
+
+// server.listen((3006), () => {
+//     console.info(`Express server listening on PORT: 3006`)
+// });
 
 //====================================== Function For handler.upload Image ===============================================//
 
-app.post("/profile", handler.upload, (req, res) => {
-    res.send("file upload")
-});
+// app.post("/profile", handler.upload, (req, res) => {
+//     res.send("file upload")
+// });
 
 
-// Protected route using the handler.verifyToken middleware
-app.get('/protected', handler.verifyToken, controller.protected)
+// // Protected route using the handler.verifyToken middleware
+// app.get('/protected', handler.verifyToken, controller.protected)
 
-//=========================================== KMS API START =====================================================//
+// //=========================================== KMS API START =====================================================//
 
-/************************ upload Documents API for Query ******************* */
-app.post("/uploadDocuments", handler.upload, controller.uploadDocuments)
+// /************************ upload Documents API for Query ******************* */
+// app.post("/uploadDocuments", handler.upload, controller.uploadDocuments)
 
-/************************ Get Documents API for Query ******************* */
-app.get('/file/:path', controller.file)
+// /************************ Get Documents API for Query ******************* */
+// app.get('/file/:path', controller.file)
 
-/************************ Registration API for Users in KMS ******************* */
-app.post("/registration", handler.upload, controller.Registration)
+
+
+const adminRoute=require("./admin/index")
+
+const frontUserRoute=require("./frontUsers/index")
 
 /************************ Login API for Users in KMS ******************* */
-app.post("/login", handler.upload, controller.login)
+app.use("/admin",adminRoute);
 
-/************************ Save Scenario of KMS ******************* */
-app.post('/saveScenario', handler.verifyToken, controller.saveScenario)
+app.use("/front_user",frontUserRoute);
+
 
 /************************ Save Question and Options of KMS ******************* */
 app.post("/saveQuestion", handler.verifyToken, controller.saveQuestion)
@@ -399,4 +423,14 @@ app.post('/forgetPassword', async (req, res) => {
 
 
 
-/////////////================= End Forget Password Section =======================/////////////
+
+
+
+
+
+
+
+
+
+
+
