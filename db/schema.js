@@ -44,6 +44,7 @@ const questionSchema = new mongoose.Schema({
     files:[],
     linked:{},
     scene: String,
+    link: String,
     newData: { default: 1, type: Number },
     start: { type: Number, default: 0 },
 
@@ -68,6 +69,7 @@ const scenarioSchema = new mongoose.Schema({
     brief: String,
     actionId: String,
     admin_id:String,
+    is_deleted: { type: Number, default: 0 },
     time_spent: [
        {
         user_id:ObjectId,

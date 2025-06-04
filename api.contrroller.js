@@ -209,26 +209,31 @@ exports.saveScenario = async (req, res) => {
 };
 
 
+// controllers/scenarioController.js
 exports.deleteScenario = async (req, res) => {
     try {
-        const { _id } = req.body;
+        const { _id, is_deleted } = req.body;
 
-        if (!_id) {
+        if (!_id || typeof is_deleted !== 'number') {
             return res.status(400).json({
                 error: true,
                 code: 400,
-                message: "Scenario ID (_id) is required",
+                message: "Scenario ID (_id) and is_deleted (0 or 1) are required",
             });
         }
 
-        const deleted = await scenario_details.findByIdAndDelete(_id);
+        const updated = await scenario_details.findByIdAndUpdate(
+            _id,
+            { is_deleted },
+            { new: true }
+        );
 
-        if (deleted) {
+        if (updated) {
             res.status(200).json({
                 error: false,
                 code: 200,
-                message: "Scenario deleted successfully",
-                data: deleted
+                message: `Scenario ${is_deleted ? 'deactivated' : 'activated'} successfully`,
+                data: updated
             });
         } else {
             res.status(404).json({
@@ -248,6 +253,8 @@ exports.deleteScenario = async (req, res) => {
     }
 };
 
+
+
 /************************ Save Question and Options of KMS ************************* */
 exports.saveQuestion = async (req, res) => {
     console.log("/saveQuestion")
@@ -264,6 +271,7 @@ exports.saveQuestion = async (req, res) => {
             let tables = data[i].tables ? data[i].tables : []
             let pre = data[i].pre ? data[i].pre : ""
             let scene = req.body.scene
+             let link = req.body.link
             
 
             let saveData = {
@@ -273,6 +281,7 @@ exports.saveQuestion = async (req, res) => {
                 options: options,
                 tables: tables,
                 scene: scene,
+                link:link,
                 start: data[i].start ? data[i].start : 0,
                 files:data[i].files?data[i].files:[],
                 linked:data[i].linked?data[i].linked:{},
