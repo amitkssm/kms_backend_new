@@ -8,6 +8,7 @@ var bcrypt = require('bcryptjs');
 var randomstring = require('randomstring');
 const bodyParser = require('body-parser');
 var moment = require('moment');
+const https = require('https');
 
 
 
@@ -37,9 +38,20 @@ app.get('/', (req, res) => {
     res.send("Home Page Of KMS");
 })
 
-app.listen((2222), () => {
-    console.log("app is running on port 2222")
-})
+// app.listen((2222), () => {
+//     console.log("app is running on port 2222")
+// })
+
+const sslOptions = {
+  key: fs.readFileSync('/etc/letsencrypt/live/kms.qdegrees.com/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/kms.qdegrees.com/fullchain.pem')
+};
+
+// Start HTTPS server
+https.createServer(sslOptions, app).listen(2222, () => {
+  console.log("HTTPS server running on port 2222");
+});
+
 
 //====================================== Function For handler.upload Image ===============================================//
 
