@@ -271,7 +271,8 @@ exports.saveQuestion = async (req, res) => {
             let tables = data[i].tables ? data[i].tables : []
             let pre = data[i].pre ? data[i].pre : ""
             let scene = req.body.scene
-             let link = req.body.link
+             let link = data[i].link ? data[i].link : "";
+
             
 
             let saveData = {
@@ -423,6 +424,31 @@ exports.getscenario = async (req, res) => {
         res.status(400).send(err);
     }
 
+};
+exports.getscenariobysearch = async (req, res) => {
+  try {
+    const { scenario } = req.body; // 🎯 get filter value
+
+    // MongoDB query object
+    const query = scenario
+      ? { scenario: { $regex: scenario, $options: "i" } } // case-insensitive search
+      : {}; // return all if no filter
+
+    const result = await scenario_details.find(query);
+
+    if (result) {
+      console.log(result.length);
+      res.status(201).json({
+        error: false,
+        code: 201,
+        message: "Scenario Fetched Successfully",
+        data: result,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send(error);
+  }
 };
 
 

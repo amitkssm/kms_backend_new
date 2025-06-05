@@ -82,6 +82,7 @@ app.get('/getQuestion', handler.verifyToken, controller.getQuestion)
 
 /************************ Get All Scenerio Categories Action Id of KMS ******************* */
 app.get('/getscenario', handler.verifyToken, controller.getscenario)
+app.post('/getscenariobysearch', handler.verifyToken, controller.getscenariobysearch)
 
 /************************ Get All Expired Scenerio Categories Action Id of KMS ******************* */
 app.get('/getExpiredScenario', controller.getExpiredScenario)
