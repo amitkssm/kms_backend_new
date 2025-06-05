@@ -41,10 +41,10 @@ app.get('/', (req, res) => {
 // app.listen((2222), () => {
 //     console.log("app is running on port 2222")
 // })
-
+// require('./SS/L/')
 const sslOptions = {
-  key: fs.readFileSync('/etc/letsencrypt/live/kms.qdegrees.com/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/kms.qdegrees.com/fullchain.pem')
+ key: fs.readFileSync('./SSL/ssl.pem'),
+  cert: fs.readFileSync('./SSL/ssl.cert')
 };
 
 // Start HTTPS server
