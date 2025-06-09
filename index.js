@@ -38,9 +38,9 @@ app.get('/', (req, res) => {
     res.send("Home Page Of KMS");
 })
 
-// app.listen((2222), () => {
-//     console.log("app is running on port 2222")
-// })
+app.listen((2222), () => {
+    console.log("app is running on port 2222")
+})
 // require('./SS/L/')
 const sslOptions = {
  key: fs.readFileSync('./SSL/ssl.pem'),
@@ -48,9 +48,9 @@ const sslOptions = {
 };
 
 // Start HTTPS server
-https.createServer(sslOptions, app).listen(2222, () => {
-  console.log("HTTPS server running on port 2222");
-});
+// https.createServer(sslOptions, app).listen(2222, () => {
+//   console.log("HTTPS server running on port 2222");
+// });
 
 
 //====================================== Function For handler.upload Image ===============================================//
@@ -93,7 +93,7 @@ app.post('/getQuestionByScenerio', handler.verifyToken, controller.getQuestionBy
 app.get('/getQuestion', handler.verifyToken, controller.getQuestion)
 
 /************************ Get All Scenerio Categories Action Id of KMS ******************* */
-app.get('/getscenario', handler.verifyToken, controller.getscenario)
+app.post('/getscenario', handler.verifyToken, controller.getscenario)
 app.post('/getscenariobysearch', handler.verifyToken, controller.getscenariobysearch)
 
 /************************ Get All Expired Scenerio Categories Action Id of KMS ******************* */
@@ -126,7 +126,7 @@ app.post('/deleteScenario', handler.verifyToken, controller.deleteScenario)
 app.get('/getscenarioRankingWise', handler.verifyToken, controller.getscenarioRankingWise)
 
 /************************ Get most view Scenerio Details Id of KMS ******************* */
-app.get("/getMostViewSceneraioDetails", controller.getMostViewSceneraioDetails)
+app.post("/getMostViewSceneraioDetails", controller.getMostViewSceneraioDetails)
 
 /************************ update User And Scenario For Time Spent ******************* */
 app.post("/updateUserAndScenarioForTimeSpent", controller.updateUserAndScenarioForTimeSpent)

@@ -299,15 +299,27 @@ exports.saveQuestion = async (req, res) => {
                 if (result) {
                     count++
                     if (count == data.length) {
-                        scenario_details.updateOne({ _id: scene }, { $set: { actionId: savedQuestion._id } }).then((data) => {
-                            res.status(200).json({
-                                error: false,
-                                code: 200,
-                                message: "Save Successfully",
-                                data: savedQuestion
-                            })
-                        })
-                    }
+  if (savedQuestion && savedQuestion._id) {
+    scenario_details.updateOne({ _id: scene }, {
+      $set: { actionId: savedQuestion._id }
+    }).then((data) => {
+      res.status(200).json({
+        error: false,
+        code: 200,
+        message: "Save Successfully",
+        data: savedQuestion
+      });
+    });
+  } else {
+    res.status(200).json({
+      error: false,
+      code: 200,
+      message: "Saved, but no 'start' node found",
+      data: null
+    });
+  }
+}
+
 
                 } else {
                     res.status(404).json({
@@ -406,50 +418,75 @@ exports.getQuestion = async (req, res) => {
 
 /******************** Get All Scenerio Categories Action Id of KMS ****************** */
 exports.getscenario = async (req, res) => {
-    
-    try {
-        const result = await scenario_details.find({});
-        if (result) {
-            console.log(result.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenario Fetched Successfully",
-                data: result
-            })
-        }
-    }
-    catch (error) {
-        console.log(error)
-        res.status(400).send(err);
+  try {
+    const { admin_id } = req.body; // or req.query for GET
+
+    if (!admin_id) {
+      return res.status(400).json({
+        error: true,
+        code: 400,
+        message: "admin_id is required"
+      });
     }
 
+    const result = await scenario_details.find({ admin_id });
+
+    res.status(201).json({
+      error: false,
+      code: 201,
+      message: "Scenario Fetched Successfully",
+      data: result
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: true,
+      code: 500,
+      message: "Internal server error",
+      details: error.message
+    });
+  }
 };
+
 exports.getscenariobysearch = async (req, res) => {
   try {
-    const { scenario } = req.body; // 🎯 get filter value
+    const { scenario, admin_id } = req.body;
 
-    // MongoDB query object
-    const query = scenario
-      ? { scenario: { $regex: scenario, $options: "i" } } // case-insensitive search
-      : {}; // return all if no filter
+    if (!admin_id) {
+      return res.status(400).json({
+        error: true,
+        code: 400,
+        message: "admin_id is required",
+      });
+    }
+
+    // Build filter query
+    const query = {
+      admin_id,
+      ...(scenario && {
+        scenario: { $regex: scenario, $options: "i" }, // case-insensitive
+      }),
+    };
 
     const result = await scenario_details.find(query);
 
-    if (result) {
-      console.log(result.length);
-      res.status(201).json({
-        error: false,
-        code: 201,
-        message: "Scenario Fetched Successfully",
-        data: result,
-      });
-    }
+    res.status(201).json({
+      error: false,
+      code: 201,
+      message: "Scenario Fetched Successfully",
+      data: result,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(400).send(error);
+    console.error(error);
+    res.status(500).json({
+      error: true,
+      code: 500,
+      message: "Internal Server Error",
+      data: error.message,
+    });
   }
 };
+
 
 
 /******************** Get All Expired Scenerio Categories Action Id of KMS ****************** */
@@ -486,27 +523,11 @@ exports.getExpiredScenario = async (req, res) => {
 
 /************************ Get Items of Scenerio Action Id of KMS ********************* */
 exports.getItemsScenerio = async (req, res) => {
-    console.log("/getItemsScenerio")
+  const { scene } = req.body;
+  const questions = await Question.find({ scene });
+  return res.json({ code: 201, data: questions });
+}
 
-    const scene = req.body.scene ? req.body.scene : ""
-    try {
-        const result = await Question.find({ scene: scene });
-        if (result) {
-            console.log(result.length);
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenerio Items Fetched Successfully",
-                data: result
-            })
-        }
-    }
-    catch (error) {
-        console.log(error)
-        res.status(400).send(err);
-    }
-
-};
 
 /************************ Edit Questions and Options of KMS *************************** */
 exports.updateQuestion = async (req, res) => {
@@ -708,28 +729,39 @@ exports.getscenarioRankingWise = async (req, res) => {
 
 /************************ Get most view Scenerio Details Id of KMS ********************** */
 exports.getMostViewSceneraioDetails = (req, res) => {
-    console.log("/getMostViewSceneraioDetails")
+  console.log("/getMostViewSceneraioDetails");
 
-    scenario_details.find({}, { count: 1, scenario: 1, actionId: 1, circle: 1 })
-        .sort({ count: -1 }) // Sort in descending order based on the count field
-        // .limit(6)
-        .then((data) => {
-            res.status(201).json({
-                error: false,
-                code: 201,
-                message: "Scenario Details Fetched Successfully",
-                data: data
-            });
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).json({
-                error: true,
-                code: 500,
-                message: "Internal Server Error",
-                data: error.message
-            });
-        });
+  const { admin_id } = req.body;
+
+  if (!admin_id) {
+    return res.status(400).json({
+      error: true,
+      code: 400,
+      message: "admin_id is required"
+    });
+  }
+
+  scenario_details
+    .find({ admin_id }, { count: 1, scenario: 1, actionId: 1, circle: 1 })
+    .sort({ count: -1 }) // Sort in descending order by view count
+    // .limit(6) // optional limit
+    .then((data) => {
+      res.status(201).json({
+        error: false,
+        code: 201,
+        message: "Scenario Details Fetched Successfully",
+        data: data
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+      res.status(500).json({
+        error: true,
+        code: 500,
+        message: "Internal Server Error",
+        data: error.message
+      });
+    });
 };
 
 /************************ update User And Scenario For Time Spent ********************** */
