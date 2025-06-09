@@ -183,6 +183,57 @@ exports.Registration = async (req, res) => {
 
 };
 
+// /controllers/userController.js
+exports.updateAgentPassword = async (req, res) => {
+    console.log("/update-agent-password");
+
+    try {
+        const { admin_id, agent_id, new_password } = req.body;
+
+        if (!admin_id || !agent_id || !new_password) {
+            return res.status(400).json({
+                error: true,
+                code: 400,
+                message: "admin_id, agent_id, and new_password are required."
+            });
+        }
+
+        // Find agent and verify ownership
+        const agent = await Registration.findOne({ _id: agent_id, admin_id: admin_id });
+
+        if (!agent) {
+            return res.status(403).json({
+                error: true,
+                code: 403,
+                message: "Agent not found or not under this admin."
+            });
+        }
+
+        // Hash the new password
+        const hashedPassword = await handler.bcryptPassword(new_password);
+
+        // Update password
+        agent.password = hashedPassword;
+        await agent.save();
+
+        res.status(200).json({
+            error: false,
+            code: 200,
+            message: "Password updated successfully."
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            error: true,
+            code: 500,
+            message: "Something went wrong.",
+            data: error.message
+        });
+    }
+};
+
+
 /**************************** Save Scenario of KMS ********************************* */
 exports.saveScenario = async (req, res) => {
     console.log("/saveScenario")

@@ -73,7 +73,7 @@ app.get('/file/:path', controller.file)
 
 /************************ Registration API for Users in KMS ******************* */
 app.post("/registration", handler.upload, controller.Registration)
-
+app.post("/updateAgentPassword",controller.updateAgentPassword)
 /************************ Login API for Users in KMS ******************* */
 app.post("/login", handler.upload, controller.login)
 
