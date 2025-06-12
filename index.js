@@ -38,9 +38,9 @@ app.get('/', (req, res) => {
     res.send("Home Page Of KMS");
 })
 
-app.listen((2222), () => {
-    console.log("app is running on port 2222")
-})
+// app.listen((2222), () => {
+//     console.log("app is running on port 2222")
+// })
 // require('./SS/L/')
 const sslOptions = {
  key: fs.readFileSync('./SSL/ssl.pem'),
@@ -48,9 +48,9 @@ const sslOptions = {
 };
 
 // Start HTTPS server
-// https.createServer(sslOptions, app).listen(2222, () => {
-//   console.log("HTTPS server running on port 2222");
-// });
+https.createServer(sslOptions, app).listen(2222, () => {
+  console.log("HTTPS server running on port 2222");
+});
 
 
 //====================================== Function For handler.upload Image ===============================================//
